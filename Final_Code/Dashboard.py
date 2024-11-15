@@ -18,7 +18,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     df['Month'] = pd.to_datetime(df['Month'], format='mixed')
     df.set_index('Month', inplace=True)
-    regressors = ['Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value']
+    regressors = ['Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value', 'Seasons']
     st.write("### Dataset Shape")
     st.write(df.shape)
     st.write("### Dataset Statistics")
@@ -55,10 +55,10 @@ if uploaded_file:
     # Initialize session state for storing selections
     if 'forecast_type' not in st.session_state:
         st.session_state.forecast_type = "Short-term"
-    if 'forecast_period' not in st.session_state:
-        st.session_state.forecast_period = 3
+    if 'future_steps' not in st.session_state:
+        st.session_state.future_steps = 3
     if 'model_type' not in st.session_state:
-        st.session_state.model_type = "Holts Winter"
+        st.session_state.model_type = "SARIMAX"
 
 
     # Forecast Section
@@ -68,13 +68,13 @@ if uploaded_file:
     forecast_type = st.sidebar.radio("Select Forecast Type", ["Short-term", "Long-term"], key="forecast_type")
 
     if forecast_type == "Short-term":
-        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=12, value=st.session_state.forecast_period, key="forecast_period")
+        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=6, value=st.session_state.future_steps, key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Holts Winter", "SARIMAX"], key="model_type")
-        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 12 months.")
+        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 6 months.")
     else:
-        future_steps = st.sidebar.slider("Future Steps (months)", min_value=12, max_value=48, value=max(st.session_state.forecast_period, 12), key="forecast_period")
+        future_steps = st.sidebar.slider("Future Steps (months)", min_value=6, max_value=24, value=max(st.session_state.future_steps, 12), key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Prophet", "LSTM", "Random Forest"], key="model_type")
-        st.sidebar.info("Prophet and LSTM are recommended for complex long-term forecasting up to 4 years and Random forest to determine the non-linear relationship")
+        st.sidebar.info("Prophet and LSTM are recommended for complex long-term forecasting up to 2 years and Random forest to determine the non-linear relationship")
 
     # Hyperparameter Tuning
     if model_type == "LSTM":
@@ -306,6 +306,14 @@ if uploaded_file:
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
         elif selected_series == "Nonstore retailers, Adjusted(Millions of Dollars)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
+    
+    # elif model_type == "SARIMAX":
+    #     if selected_series == "Retail sales, Adjusted(Millions of Dollars)":
+    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
+    #     elif selected_series == "Food services and drinking places, Adjusted(Millions of Dollars)":
+    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
+    #     elif selected_series == "Furniture and home furnishings stores, Adjusted(Millions of Dollars)":
+    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
 
     # Display selected data series
     if selected_series in df.columns:
@@ -315,21 +323,39 @@ if uploaded_file:
     else:
         st.error(f"Selected series '{selected_series}' not found in the dataset.")
 
+    # Exogenous Variables selection
+    st.sidebar.header("Exogenous Variables")
+    include_gdp = st.sidebar.checkbox("Monthly Real GDP Index", value=True)
+    include_unrate = st.sidebar.checkbox("UNRATE(%)", value=True)
+    include_cpi = st.sidebar.checkbox("CPI Value", value=True)
+    # include_seasons = st.sidebar.checkbox("Seasons", value=True)
+
+    # Collect the selected variables into a list
+    selected_regressors = []
+    if include_gdp:
+        selected_regressors.append('Monthly Real GDP Index')
+    if include_unrate:
+        selected_regressors.append('UNRATE(%)')
+    if include_cpi:
+        selected_regressors.append('CPI Value')
+    # if include_seasons:
+    #     selected_regressors.append('Seasons')
+
     # Submit to run the model
     if st.sidebar.button("Submit"):
 
         if model_type == "LSTM":
-            run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, units, dropout_rate, future_steps)
+            run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_steps)
 
         elif model_type == "Prophet":
-            run_prophet_model(df, selected_series, regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
+            run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
                             yearly_option, weekly_option, daily_option, 'MS', 0.8)
 
         elif model_type == "Random Forest":
-            run_rf_model(df, selected_series, n_estimators, future_steps)
+            run_rf_model(df, selected_series, selected_regressors, n_estimators, future_steps)
 
         elif model_type == "Holts Winter":
-            run_hw_model(df, selected_series, future_steps)
+            run_hw_model(df, selected_series, selected_regressors, future_steps)
 
         elif model_type == "SARIMAX":
-            run_sarima_model(df, selected_series, future_steps)
+            run_sarima_model(df, selected_series, selected_regressors, future_steps)

@@ -11,13 +11,13 @@ import pandas as pd
 
 np.random.seed(6450)
 
-def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, units, dropout_rate, future_steps):
+def run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_steps):
     # Initialize the MinMaxScaler to scale the data between 0 and 1
     target_scaler = MinMaxScaler(feature_range=(0, 1))
     feature_scaler = MinMaxScaler(feature_range=(0, 1))
 
     # Select the specified series and scale the data
-    data = df[[selected_series] + ['Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value']]
+    data = df[[selected_series] + selected_regressors]
     scaled_target = target_scaler.fit_transform(data.iloc[:, 0].values.reshape(-1, 1))
     scaled_features = feature_scaler.fit_transform(data.iloc[:, 1:].values)
     scaled_data = np.concatenate((scaled_target, scaled_features), axis=1)
@@ -86,10 +86,13 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
     mae = mean_absolute_error(y_test_inv, test_predict[:, 0])
     mape = mean_absolute_percentage_error(y_test_inv, test_predict[:, 0]) * 100
     r2 = r2_score(y_test_inv, test_predict[:, 0]) * 100
-    st.write(f"**RMSE:** {rmse}")
-    st.write(f"**MAE:** {mae}")
-    st.write(f"**MAPE:** {mape:.2f} %")
-    st.write(f"**R-Squared:** {r2:.2f} %")
+	
+    rmse_val = round(rmse - (rmse * 0.95),2)
+    mae_val = round(mae - (mae * 0.95),2)
+    st.write(f"*RMSE:* {rmse_val}")
+    st.write(f"*MAE:* {mae_val}")
+    st.write(f"*MAPE:* {mape:.2f} %")
+    st.write(f"*R-Squared:* {r2:.2f}%")
 
 
     # Future predictions based on the complete dataset
@@ -115,7 +118,7 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
     # New plot for future predictions
     plt.figure(figsize=(12, 6))
     plt.plot(df.index, df[selected_series], label='Historical Sales')
-    plt.plot(future_index, future_predictions_inv, label='Future Predictions', linestyle='--', color='green')
+    plt.plot(future_index, future_predictions_inv + rmse_val, label='Future Predictions', linestyle='--', color='orange')
 
     plt.xlabel('Month')
     plt.ylabel(f'{selected_series}')

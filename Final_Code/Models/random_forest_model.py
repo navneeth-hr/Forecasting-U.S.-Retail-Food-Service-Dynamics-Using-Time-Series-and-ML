@@ -10,7 +10,7 @@ import seaborn as sns
 
 np.random.seed(6450)
 
-def run_rf_model(df, selected_series, n_estimators, future_steps):
+def run_rf_model(df, selected_series, selected_regressors,  n_estimators, future_steps):
     def make_stationary(data, target_col):
         data['diff'] = data[target_col].diff()
         data.dropna(inplace=True)
@@ -35,7 +35,7 @@ def run_rf_model(df, selected_series, n_estimators, future_steps):
         df.dropna(inplace=True)
 
         # Define features and target
-        X = df[[f'lag_{i}' for i in range(1, 3)] + ['rolling_3', 'rolling_6', 'Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value']]
+        X = df[[f'lag_{i}' for i in range(1, 3)] + ['rolling_3', 'rolling_6'] + selected_regressors]
         y = df['diff']
 
         # Split data into train and test sets

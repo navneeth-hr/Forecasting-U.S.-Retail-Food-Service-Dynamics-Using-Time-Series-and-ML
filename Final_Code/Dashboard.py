@@ -361,7 +361,7 @@ if uploaded_file:
 
         elif model_type == "Prophet":
             run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
-                            yearly_option, weekly_option, daily_option, 'MS', 0.8)
+                            yearly_option, weekly_option, daily_option, 'MS', 0.8, future_exog_df, future_steps)
 
         elif model_type == "Random Forest":
             run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps)

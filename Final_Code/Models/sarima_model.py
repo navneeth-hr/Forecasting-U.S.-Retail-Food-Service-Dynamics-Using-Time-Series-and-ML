@@ -125,7 +125,7 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
         st.write(f"RMSE: {metrics['RMSE']:.3f}")
         st.write(f"MAE: {metrics['MAE']:.3f}")
         st.write(f"MAPE: {metrics['MAPE']:.1f} %")
-        st.write(f"R2: {metrics['R2']:.1f} %")
+        st.write(f"R-Squared: {metrics['R2']:.1f} %")
     
     rmse = metrics['RMSE']
     mae = metrics['MAE']
@@ -148,7 +148,7 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     future_forecast_df[f'Predicted {selected_series}'] = future_forecast_df[f'Predicted {selected_series}'].round(2)
 
     plt.figure(figsize=(12, 6))
-    plt.plot(y_train.index, y_train, label='Historical Data', color = 'blue')
+    plt.plot(y_train.index, y_train, color = 'blue')
     if y_test is not None:
         plt.plot(y_test.index, y_test, color = 'blue', label='Historical Data')
     # plt.plot(future_index, future_forecast_mean + rmse, linestyle='-', label='Future Forecast', color='green')

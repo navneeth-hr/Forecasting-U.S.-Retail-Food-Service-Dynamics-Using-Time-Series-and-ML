@@ -75,7 +75,7 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
     st.write(f'RMSE: {rmse:.3f}')
     st.write(f'MAE: {mae:.3f}')
     st.write(f'MAPE: {mape:.3f}%')
-    st.write(f'R2: {r2:.3%}')
+    st.write(f'R-Squared: {r2:.3%}')
 
     plt.figure(figsize=(12, 6))
     plt.plot(y_train.index, y_train, label='Train Data')

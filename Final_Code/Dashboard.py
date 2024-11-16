@@ -59,15 +59,6 @@ if uploaded_file:
         selected_series = "Food services and drinking places, Adjusted(Millions of Dollars)"
     
 
-    # Initialize session state for storing selections
-    if 'forecast_type' not in st.session_state:
-        st.session_state.forecast_type = "Short-term"
-    if 'future_steps' not in st.session_state:
-        st.session_state.future_steps = 3
-    if 'model_type' not in st.session_state:
-        st.session_state.model_type = "SARIMAX"
-
-
     # Forecast Section
     st.sidebar.header("Forecast Configuration")
     
@@ -76,11 +67,11 @@ if uploaded_file:
 
 
     if forecast_type == "Short-term":
-        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=10, value=st.session_state.future_steps, key="future_steps")
+        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=8, value=3, key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Holts Winter", "SARIMAX"], key="model_type")
-        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 10 months.")
+        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 8 months.")
     else:
-        future_steps = st.sidebar.slider("Future Steps (months)", min_value=6, max_value=24, value=max(st.session_state.future_steps, 12), key="future_steps")
+        future_steps = st.sidebar.slider("Future Steps (months)", min_value=8, max_value=24, value=12, key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Prophet", "LSTM", "Random Forest", "XGBoost"], key="model_type")
         st.sidebar.info("Prophet and LSTM are recommended for complex long-term forecasting up to 2 years and Random forest to determine the non-linear relationship")
     

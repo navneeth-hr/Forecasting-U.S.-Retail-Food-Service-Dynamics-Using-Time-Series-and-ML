@@ -72,11 +72,10 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
     adjusted_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
     mape = np.mean(np.abs((y_test - final_forecast) / y_test)) * 100
 
-    st.write(f'MAE: {mae:.3f}')
     st.write(f'RMSE: {rmse:.3f}')
-    st.write(f'R2: {r2:.3%}')
-    # st.write(f'Adjusted R2: {adjusted_r2:.3%}')
+    st.write(f'MAE: {mae:.3f}')
     st.write(f'MAPE: {mape:.3f}%')
+    st.write(f'R2: {r2:.3%}')
 
     plt.figure(figsize=(12, 6))
     plt.plot(y_train.index, y_train, label='Train Data')
@@ -109,20 +108,17 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
     plt.ylabel(selected_series)
     st.pyplot(plt)
 
-    selected_series_column = selected_series.split(',')[0]
-
     future_forecast_df = pd.DataFrame({
-                                        'Month': future_index,
-                                        f'Predicted {selected_series_column} ($ Million Dollars)': future_forecast.values
-                                    })
+        'Month': future_index,
+        f'Predicted {selected_series}': future_forecast.values
+    })
+
 
     future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
-    future_forecast_df.set_index('Month', inplace=True)
-    future_forecast_df[f'Predicted {selected_series_column} ($ Million Dollars)'] = future_forecast_df[f'Predicted {selected_series_column} ($ Million Dollars)'].round(3)
+    future_forecast_df[f'Predicted {selected_series}'] = future_forecast_df[f'Predicted {selected_series}'].round(2)
 
-    # Show the table with future months and predictions
-    st.write("### Future Predictions Table")
-    st.dataframe(future_forecast_df)
+    return future_forecast_df, rmse, mae, mape, r2
+
 
 def run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps):
     target_column = selected_series
@@ -130,4 +126,4 @@ def run_hw_model(df, selected_series, selected_regressors, future_exog_df, futur
     y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars)
 
     st.subheader("Holt-Winters Model Predictions vs Actual Data")
-    mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series)
+    return mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series)

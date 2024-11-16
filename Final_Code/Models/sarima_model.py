@@ -74,7 +74,7 @@ def evaluate_forecast(actual, predicted):
         'R2': r2 * 100
     }
 
-def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, y_test=None):
+def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, selected_series, y_test=None):
     """
     Fit SARIMAX model, forecast on test data, and then forecast future data using predicted exogenous variables.
     
@@ -124,10 +124,13 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
         metrics = evaluate_forecast(y_test, test_forecast_mean)
         st.write(f"RMSE: {metrics['RMSE']:.3f}")
         st.write(f"MAE: {metrics['MAE']:.3f}")
-        st.write(f"R2: {metrics['R2']:.1f} %")
         st.write(f"MAPE: {metrics['MAPE']:.1f} %")
+        st.write(f"R2: {metrics['R2']:.1f} %")
     
     rmse = metrics['RMSE']
+    mae = metrics['MAE']
+    r2 = metrics['R2']
+    mape = metrics['MAPE']
 
     # Future forecasting using predicted exogenous variables
     future_steps = len(X_future) if future_steps in (None, '') else future_steps
@@ -138,12 +141,11 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
 
     future_forecast_df = pd.DataFrame({
         'Month': future_index,
-        'Predicted Retail Sales ($ Million Dollars)': future_forecast_mean.values
+        f'Predicted {selected_series}': future_forecast_mean.values
     })
 
     future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
-    future_forecast_df.set_index('Month', inplace=True)
-    future_forecast_df['Predicted Retail Sales ($ Million Dollars)'] = future_forecast_df['Predicted Retail Sales ($ Million Dollars)'].round(3)
+    future_forecast_df[f'Predicted {selected_series}'] = future_forecast_df[f'Predicted {selected_series}'].round(2)
 
     plt.figure(figsize=(12, 6))
     # plt.plot(y_train.index, y_train, label='Historical Data', color = 'blue')
@@ -159,11 +161,7 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     plt.ylabel('Retail Sales')
     st.pyplot(plt)
 
-    # Show the table with future months and predictions
-    st.write("### Future Predictions Table")
-    st.dataframe(future_forecast_df)
-
-    return test_forecast_mean, future_forecast_mean, metrics, future_forecast_df
+    return future_forecast_df, rmse, mae, mape, r2
 
 def run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps, order, seasonal_order):
     target_column = selected_series
@@ -174,4 +172,4 @@ def run_sarima_model(df, selected_series, selected_regressors, future_exog_df, f
     st.subheader("SARIMAX Model Predictions vs Actual Data")
 
     # Run SARIMAX analysis
-    test_forecast, future_forecast, metrics, future_forecast_df = sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, y_test)
+    return sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, target_column, y_test)

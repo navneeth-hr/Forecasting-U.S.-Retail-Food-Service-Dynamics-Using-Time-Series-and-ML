@@ -96,9 +96,6 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
         'Month': future_index,
         f'Predicted {target_col}': forecast_future
     })
+    future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 
-    # Show the future predictions table
-    st.write("### Future Predictions Table")
-    st.dataframe(future_predictions_df)
-
-    return future_predictions_df
+    return future_predictions_df, rmse, mae, mape, r2

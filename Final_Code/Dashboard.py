@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from Utilities.utils import plot_data, display_error_metrics
+from Utilities.utils import plot_data, display_error_metrics, generate_insights
 from Models.lstm_model import run_lstm_model
 from Models.prophet_model import run_prophet_model
 from Models.random_forest_model import run_rf_model
@@ -369,20 +369,25 @@ if uploaded_file:
     if st.sidebar.button("Submit"):
 
         if model_type == "LSTM":
-            run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_exog_df, future_steps)
 
         elif model_type == "Prophet":
-            run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
+            future_predictions_df, rmse, mae, mape, r2 = run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
                             yearly_option, weekly_option, daily_option, 'MS', 0.8, future_exog_df, future_steps)
 
         elif model_type == "Random Forest":
-            run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps)
 
         elif model_type == "XGBoost":
-            run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
 
         elif model_type == "Holts Winter":
-            run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps)
 
         elif model_type == "SARIMAX":
-            run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps, order, seasonal_order)
+            future_predictions_df, rmse, mae, mape, r2 = run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps, order, seasonal_order)
+
+        insights = generate_insights(selected_series, rmse, mae, mape, r2, future_predictions_df, forecast_type)
+        
+        # Display insights
+        st.write(insights)

@@ -125,9 +125,8 @@ def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_
             'Month': future_index,
             f'Predicted {selected_series}': future_predictions_inv
         })
+        future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 
-        # Show the table with future months and predictions
-        st.write("### Future Predictions Table")
-        st.dataframe(future_predictions_df)
+        return future_predictions_df, rmse, mae, mape, r2
 
-    random_forest_with_feature_engineering(df, selected_series, n_estimators, future_exog_df, future_steps)
+    return random_forest_with_feature_engineering(df, selected_series, n_estimators, future_exog_df, future_steps)

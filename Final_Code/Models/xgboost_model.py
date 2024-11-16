@@ -136,9 +136,9 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
             'Month': future_index,
             f'Predicted {selected_series}': future_predictions_inv
         })
+        future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 
-        # Show the table with future months and predictions
-        st.write("### Future Predictions Table")
-        st.dataframe(future_predictions_df)
+        return future_predictions_df, rmse, mae, mape, r2
 
-    xgboost_with_feature_engineering(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
+    # Ensure the function returns the result
+    return xgboost_with_feature_engineering(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)

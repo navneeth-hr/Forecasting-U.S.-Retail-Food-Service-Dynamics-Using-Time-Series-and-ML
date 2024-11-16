@@ -116,7 +116,6 @@ def run_lstm_model(df, selected_series, selected_regressors, sequence_length, ep
             'Month': future_index,
             f'Predicted {selected_series}': future_predict
         })
+    future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 
-    # Show the table with future months and predictions
-    st.write("### Future Predictions Table")
-    st.dataframe(future_predictions_df)
+    return future_predictions_df, rmse, mae, mape, r2

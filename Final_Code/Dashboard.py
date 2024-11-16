@@ -26,7 +26,8 @@ if uploaded_file:
     st.write("### Dataset Statistics")
     st.write(df.describe())
 
-    future_exog_df = pd.read_csv(r".\Datasets\\future_exo_vars_predictions_using_LSTM.csv")
+    url = "https://raw.githubusercontent.com/navneeth-hr/Forecasting-U.S.-Retail-Food-Service-Dynamics-Using-Time-Series-and-ML/refs/heads/main/Final_Code/Datasets/future_exo_vars_predictions_using_LSTM.csv"
+    future_exog_df = pd.read_csv(url)
     future_exog_df['Month'] = pd.to_datetime(future_exog_df['Month'], format='mixed')
     future_exog_df.set_index('Month', inplace=True)
 
@@ -73,14 +74,17 @@ if uploaded_file:
     # Use key parameter to update session state
     forecast_type = st.sidebar.radio("Select Forecast Type", ["Short-term", "Long-term"], key="forecast_type")
 
+
     if forecast_type == "Short-term":
-        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=6, value=st.session_state.future_steps, key="future_steps")
+        future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=10, value=st.session_state.future_steps, key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Holts Winter", "SARIMAX"], key="model_type")
-        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 6 months.")
+        st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 10 months.")
     else:
         future_steps = st.sidebar.slider("Future Steps (months)", min_value=6, max_value=24, value=max(st.session_state.future_steps, 12), key="future_steps")
         model_type = st.sidebar.selectbox("Select Model", ["Prophet", "LSTM", "Random Forest", "XGBoost"], key="model_type")
         st.sidebar.info("Prophet and LSTM are recommended for complex long-term forecasting up to 2 years and Random forest to determine the non-linear relationship")
+    
+    future_exog_df = future_exog_df.iloc[: future_steps]
 
     # Hyperparameter Tuning
     if model_type == "LSTM":
@@ -319,13 +323,21 @@ if uploaded_file:
         max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
         min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
 
-    # elif model_type == "SARIMAX":
-    #     if selected_series == "Retail sales, Adjusted(Millions of Dollars)":
-    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-    #     elif selected_series == "Food services and drinking places, Adjusted(Millions of Dollars)":
-    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-    #     elif selected_series == "Furniture and home furnishings stores, Adjusted(Millions of Dollars)":
-    #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
+    elif model_type == "SARIMAX":
+        if selected_series == "Retail sales, Adjusted(Millions of Dollars)":
+            order = (1, 1, 1)
+            seasonal_order = (1, 1, 1, 12)
+            # st.sidebar.header("Order for SARIMAX")
+            # order = st.sidebar.slider("Non Seasonal Differencing Order", min_value=1, max_value=7, value=1, step=1)
+            # seasonal_order = st.sidebar.slider("Seasonal Differencing Order", min_value=0, max_value=7, value=1, step=1)
+
+        elif selected_series == "Food services and drinking places, Adjusted(Millions of Dollars)":
+            order = (1, 1, 1)
+            seasonal_order = (1, 1, 1, 12)
+
+        elif selected_series == "Furniture and home furnishings stores, Adjusted(Millions of Dollars)":
+            order = (1, 1, 1)
+            seasonal_order = (1, 1, 1, 12)
 
     # Display selected data series
     if selected_series in df.columns:
@@ -336,10 +348,10 @@ if uploaded_file:
         st.error(f"Selected series '{selected_series}' not found in the dataset.")
 
     # Exogenous Variables selection
-    st.sidebar.header("Exogenous Variables")
-    include_gdp = st.sidebar.checkbox("Monthly Real GDP Index", value=True)
-    include_unrate = st.sidebar.checkbox("UNRATE(%)", value=True)
-    include_cpi = st.sidebar.checkbox("CPI Value", value=True)
+    st.sidebar.header("External Factors")
+    include_gdp = st.sidebar.checkbox("Monthly Real GDP", value=True)
+    include_unrate = st.sidebar.checkbox("Unemployment Rate(%)", value=True)
+    include_cpi = st.sidebar.checkbox("Consumer Price Index", value=True)
     # include_seasons = st.sidebar.checkbox("Seasons", value=True)
 
     # Collect the selected variables into a list
@@ -370,7 +382,7 @@ if uploaded_file:
             run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
 
         elif model_type == "Holts Winter":
-            run_hw_model(df, selected_series, selected_regressor, future_exog_dfs, future_steps)
+            run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps)
 
         elif model_type == "SARIMAX":
-            run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps)
+            run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps, order, seasonal_order)

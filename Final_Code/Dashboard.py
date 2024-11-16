@@ -33,30 +33,30 @@ if uploaded_file:
 
     category_type = st.sidebar.selectbox(
         "Select Category Type", 
-        ["Retail sales(Millions of Dollars)", "Food services and drinking places(Millions of Dollars)"]
+        ["Retail sales($MM)", "Food services and drinking places($MM)"]
     )
 
-    if category_type == "Retail sales(Millions of Dollars)":
+    if category_type == "Retail sales($MM)":
         selected_series = st.sidebar.selectbox(
             "Select Retail Sub-Category", 
             [
-                "Retail sales(Millions of Dollars)", 
-                "Motor vehicle and parts dealers(Millions of Dollars)",
-                "Furniture and home furnishings stores(Millions of Dollars)",
-                "Electronics and appliance stores(Millions of Dollars)",
-                "Building mat. and garden equip. and supplies dealers(Millions of Dollars)",
-                "Food and beverage stores(Millions of Dollars)",
-                "Health and personal care stores(Millions of Dollars)",
-                "Gasoline stations(Millions of Dollars)",
-                "Clothing and clothing access. Stores(Millions of Dollars)",
-                "Sporting goods, hobby, musical instrument, and book stores(Millions of Dollars)",
-                "General merchandise stores(Millions of Dollars)",
-                "Miscellaneous store retailers(Millions of Dollars)",
-                "Nonstore retailers(Millions of Dollars)"
+                "Retail sales($MM)", 
+                "Motor vehicle and parts dealers($MM)",
+                "Furniture and home furnishings stores($MM)",
+                "Electronics and appliance stores($MM)",
+                "Building mat. and garden equip. and supplies dealers($MM)",
+                "Food and beverage stores($MM)",
+                "Health and personal care stores($MM)",
+                "Gasoline stations($MM)",
+                "Clothing and clothing access. Stores($MM)",
+                "Sporting goods, hobby, musical instrument, and book stores($MM)",
+                "General merchandise stores($MM)",
+                "Miscellaneous store retailers($MM)",
+                "Nonstore retailers($MM)"
             ]
         )
     else:
-        selected_series = "Food services and drinking places(Millions of Dollars)"
+        selected_series = "Food services and drinking places($MM)"
     
 
     # Forecast Section
@@ -79,85 +79,85 @@ if uploaded_file:
 
     # Hyperparameter Tuning
     if model_type == "LSTM":
-        if selected_series == "Retail sales(Millions of Dollars)":
+        if selected_series == "Retail sales($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=150)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Food services and drinking places(Millions of Dollars)":
+        elif selected_series == "Food services and drinking places($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=95)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=32)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.2)
-        elif selected_series == "Motor vehicle and parts dealers(Millions of Dollars)":
+        elif selected_series == "Motor vehicle and parts dealers($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Furniture and home furnishings stores(Millions of Dollars)":
+        elif selected_series == "Furniture and home furnishings stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Electronics and appliance stores(Millions of Dollars)":
+        elif selected_series == "Electronics and appliance stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Building mat. and garden equip. and supplies dealers(Millions of Dollars)":
+        elif selected_series == "Building mat. and garden equip. and supplies dealers($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Food and beverage stores(Millions of Dollars)":
+        elif selected_series == "Food and beverage stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Health and personal care stores(Millions of Dollars)":
+        elif selected_series == "Health and personal care stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Gasoline stations(Millions of Dollars)":
+        elif selected_series == "Gasoline stations($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Clothing and clothing access. Stores(Millions of Dollars)":
+        elif selected_series == "Clothing and clothing access. Stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores(Millions of Dollars)":
+        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "General merchandise stores(Millions of Dollars)":
+        elif selected_series == "General merchandise stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Miscellaneous store retailers(Millions of Dollars)":
+        elif selected_series == "Miscellaneous store retailers($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
-        elif selected_series == "Nonstore retailers(Millions of Dollars)":
+        elif selected_series == "Nonstore retailers($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
@@ -165,7 +165,7 @@ if uploaded_file:
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
         
     elif model_type == "Prophet":
-        if selected_series == "Retail sales(Millions of Dollars)":
+        if selected_series == "Retail sales($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=10.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=24)
@@ -173,7 +173,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Food services and drinking places(Millions of Dollars)":
+        elif selected_series == "Food services and drinking places($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.000, max_value=1.00, value=0.001)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=10.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -181,7 +181,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Motor vehicle and parts dealers(Millions of Dollars)":
+        elif selected_series == "Motor vehicle and parts dealers($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.9)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=6.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -189,7 +189,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Furniture and home furnishings stores(Millions of Dollars)":
+        elif selected_series == "Furniture and home furnishings stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.2)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=7.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=18)
@@ -197,7 +197,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Electronics and appliance stores(Millions of Dollars)":
+        elif selected_series == "Electronics and appliance stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.01)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=10.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=24)
@@ -205,7 +205,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Building mat. and garden equip. and supplies dealers(Millions of Dollars)":
+        elif selected_series == "Building mat. and garden equip. and supplies dealers($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -213,7 +213,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Food and beverage stores(Millions of Dollars)":
+        elif selected_series == "Food and beverage stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -221,7 +221,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Health and personal care stores(Millions of Dollars)":
+        elif selected_series == "Health and personal care stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -229,7 +229,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Gasoline stations(Millions of Dollars)":
+        elif selected_series == "Gasoline stations($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -237,7 +237,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Clothing and clothing access. Stores(Millions of Dollars)":
+        elif selected_series == "Clothing and clothing access. Stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -245,7 +245,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores(Millions of Dollars)":
+        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -253,7 +253,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "General merchandise stores(Millions of Dollars)":
+        elif selected_series == "General merchandise stores($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -261,7 +261,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Miscellaneous store retailers(Millions of Dollars)":
+        elif selected_series == "Miscellaneous store retailers($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -269,7 +269,7 @@ if uploaded_file:
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
-        elif selected_series == "Nonstore retailers(Millions of Dollars)":
+        elif selected_series == "Nonstore retailers($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
             seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=0.05)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=12)
@@ -279,33 +279,33 @@ if uploaded_file:
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
 
     elif model_type == "Random Forest":
-        if selected_series == "Retail sales(Millions of Dollars)":
+        if selected_series == "Retail sales($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Food services and drinking places(Millions of Dollars)":
+        elif selected_series == "Food services and drinking places($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Motor vehicle and parts dealers(Millions of Dollars)":
+        elif selected_series == "Motor vehicle and parts dealers($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Furniture and home furnishings stores(Millions of Dollars)":
+        elif selected_series == "Furniture and home furnishings stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Electronics and appliance stores(Millions of Dollars)":
+        elif selected_series == "Electronics and appliance stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Building mat. and garden equip. and supplies dealers(Millions of Dollars)":
+        elif selected_series == "Building mat. and garden equip. and supplies dealers($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Food and beverage stores(Millions of Dollars)":
+        elif selected_series == "Food and beverage stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Health and personal care stores(Millions of Dollars)":
+        elif selected_series == "Health and personal care stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Gasoline stations(Millions of Dollars)":
+        elif selected_series == "Gasoline stations($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Clothing and clothing access. Stores(Millions of Dollars)":
+        elif selected_series == "Clothing and clothing access. Stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores(Millions of Dollars)":
+        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "General merchandise stores(Millions of Dollars)":
+        elif selected_series == "General merchandise stores($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Miscellaneous store retailers(Millions of Dollars)":
+        elif selected_series == "Miscellaneous store retailers($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Nonstore retailers(Millions of Dollars)":
+        elif selected_series == "Nonstore retailers($MM)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
 
     elif model_type == "XGBoost":
@@ -315,18 +315,18 @@ if uploaded_file:
         min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
 
     elif model_type == "SARIMAX":
-        if selected_series == "Retail sales(Millions of Dollars)":
+        if selected_series == "Retail sales($MM)":
             order = (1, 1, 1)
             seasonal_order = (1, 1, 1, 12)
             # st.sidebar.header("Order for SARIMAX")
             # order = st.sidebar.slider("Non Seasonal Differencing Order", min_value=1, max_value=7, value=1, step=1)
             # seasonal_order = st.sidebar.slider("Seasonal Differencing Order", min_value=0, max_value=7, value=1, step=1)
 
-        elif selected_series == "Food services and drinking places(Millions of Dollars)":
+        elif selected_series == "Food services and drinking places($MM)":
             order = (1, 1, 1)
             seasonal_order = (1, 1, 1, 12)
 
-        elif selected_series == "Furniture and home furnishings stores(Millions of Dollars)":
+        elif selected_series == "Furniture and home furnishings stores($MM)":
             order = (1, 1, 1)
             seasonal_order = (1, 1, 1, 12)
 

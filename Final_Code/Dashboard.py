@@ -4,6 +4,7 @@ from Utilities.utils import plot_data, display_error_metrics
 from Models.lstm_model import run_lstm_model
 from Models.prophet_model import run_prophet_model
 from Models.random_forest_model import run_rf_model
+from Models.xgboost_model import run_xgboost_model
 from Models.holts_winter_model import run_hw_model
 from Models.sarima_model import run_sarima_model
 
@@ -18,12 +19,17 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     df['Month'] = pd.to_datetime(df['Month'], format='mixed')
     df.set_index('Month', inplace=True)
-    regressors = ['Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value', 'Seasons']
+    regressors = ['Monthly Real GDP Index', 'UNRATE(%)', 'CPI Value']
+
     st.write("### Dataset Shape")
     st.write(df.shape)
     st.write("### Dataset Statistics")
     st.write(df.describe())
-    
+
+    future_exog_df = pd.read_csv(r".\Datasets\\future_exo_vars_predictions_using_LSTM.csv")
+    future_exog_df['Month'] = pd.to_datetime(future_exog_df['Month'], format='mixed')
+    future_exog_df.set_index('Month', inplace=True)
+
     category_type = st.sidebar.selectbox(
         "Select Category Type", 
         ["Retail sales, Adjusted(Millions of Dollars)", "Food services and drinking places, Adjusted(Millions of Dollars)"]
@@ -73,7 +79,7 @@ if uploaded_file:
         st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 6 months.")
     else:
         future_steps = st.sidebar.slider("Future Steps (months)", min_value=6, max_value=24, value=max(st.session_state.future_steps, 12), key="future_steps")
-        model_type = st.sidebar.selectbox("Select Model", ["Prophet", "LSTM", "Random Forest"], key="model_type")
+        model_type = st.sidebar.selectbox("Select Model", ["Prophet", "LSTM", "Random Forest", "XGBoost"], key="model_type")
         st.sidebar.info("Prophet and LSTM are recommended for complex long-term forecasting up to 2 years and Random forest to determine the non-linear relationship")
 
     # Hyperparameter Tuning
@@ -306,7 +312,13 @@ if uploaded_file:
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
         elif selected_series == "Nonstore retailers, Adjusted(Millions of Dollars)":
             n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-    
+
+    elif model_type == "XGBoost":
+        learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.1, step=0.01)
+        n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100, step=10)
+        max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
+        min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
+
     # elif model_type == "SARIMAX":
     #     if selected_series == "Retail sales, Adjusted(Millions of Dollars)":
     #         n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
@@ -345,17 +357,20 @@ if uploaded_file:
     if st.sidebar.button("Submit"):
 
         if model_type == "LSTM":
-            run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_steps)
+            run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_exog_df, future_steps)
 
         elif model_type == "Prophet":
             run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,
                             yearly_option, weekly_option, daily_option, 'MS', 0.8)
 
         elif model_type == "Random Forest":
-            run_rf_model(df, selected_series, selected_regressors, n_estimators, future_steps)
+            run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps)
+
+        elif model_type == "XGBoost":
+            run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
 
         elif model_type == "Holts Winter":
-            run_hw_model(df, selected_series, selected_regressors, future_steps)
+            run_hw_model(df, selected_series, selected_regressor, future_exog_dfs, future_steps)
 
         elif model_type == "SARIMAX":
-            run_sarima_model(df, selected_series, selected_regressors, future_steps)
+            run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps)

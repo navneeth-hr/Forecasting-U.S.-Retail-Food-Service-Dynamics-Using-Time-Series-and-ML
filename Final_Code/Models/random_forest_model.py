@@ -10,20 +10,20 @@ import seaborn as sns
 
 np.random.seed(6450)
 
-def run_rf_model(df, selected_series, selected_regressors,  n_estimators, future_steps):
+def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps):
     def make_stationary(data, target_col):
         data['diff'] = data[target_col].diff()
         data.dropna(inplace=True)
         return data
 
     def revert_differencing(data, predictions, target_col):
-        last_actual_value = data[target_col].iloc[-len(predictions)-1]
+        last_actual_value = data[target_col].iloc[-len(predictions) - 1]
         original_predictions = [last_actual_value + predictions[0]]
         for i in range(1, len(predictions)):
             original_predictions.append(original_predictions[-1] + predictions[i])
         return original_predictions
 
-    def random_forest_with_feature_engineering(df, selected_series, n_estimators, future_steps):
+    def random_forest_with_feature_engineering(df, selected_series, n_estimators, future_exog_df, future_steps):
         df = make_stationary(df, selected_series)
 
         # Add lag and rolling features
@@ -87,22 +87,16 @@ def run_rf_model(df, selected_series, selected_regressors,  n_estimators, future
         st.write(f"**MAPE:** {mape:.2f} %")
         st.write(f"**R-Squared:** {r2:.2f} %")
 
-        # Feature importance plot
-        feature_importances = best_model.feature_importances_
-
-        plt.figure(figsize=(10, 6))
-        sns.barplot(x=X.columns, y=feature_importances)
-        plt.title('Feature Importances in Random Forest Model')
-        plt.xlabel('Features')
-        plt.ylabel('Importance')
-        plt.xticks(rotation=45)
-        st.pyplot(plt)
-
-        # Future predictions based on the last sequence
+        # Prepare data for future predictions
         last_sequence = X.iloc[-1:].copy()
         future_predictions = []
 
-        for _ in range(future_steps):
+        for i in range(future_steps):
+            # Update exogenous features with future data
+            for regressor in selected_regressors:
+                last_sequence[regressor] = future_exog_df.iloc[i][regressor]
+
+            # Predict the next value
             next_pred = best_model.predict(last_sequence)
             future_predictions.append(next_pred[0])
 
@@ -119,11 +113,21 @@ def run_rf_model(df, selected_series, selected_regressors,  n_estimators, future
         # Plot future predictions
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df[selected_series], label='Historical Sales')
-        plt.plot(future_index, future_predictions_inv, label='Future Predictions', linestyle='--', color='green')
+        plt.plot(future_index, future_predictions_inv, label='Future Predictions', linestyle='--', color='orange')
         plt.xlabel('Month')
         plt.ylabel(f'{selected_series}')
         plt.title(f'Future {selected_series} Sales Predictions')
         plt.legend()
         st.pyplot(plt)
 
-    random_forest_with_feature_engineering(df, selected_series, n_estimators, future_steps)
+        # Create a DataFrame for future months and predicted values
+        future_predictions_df = pd.DataFrame({
+            'Month': future_index,
+            f'Predicted {selected_series}': future_predictions_inv
+        })
+
+        # Show the table with future months and predictions
+        st.write("### Future Predictions Table")
+        st.dataframe(future_predictions_df)
+
+    random_forest_with_feature_engineering(df, selected_series, n_estimators, future_exog_df, future_steps)

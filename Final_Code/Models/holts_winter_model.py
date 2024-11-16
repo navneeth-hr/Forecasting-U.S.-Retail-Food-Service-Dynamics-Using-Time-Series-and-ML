@@ -8,55 +8,64 @@ import warnings
 import streamlit as st
 warnings.filterwarnings("ignore")
 
-
-def prepare_data(df, target_column, exog_vars, split_ratio):
+def prepare_data(df, future_exog_df, target_column, exog_vars, test_ratio=0.2):
     """
-    Prepare and split the data into train and test sets, handling exogenous variables.
-    """
-    # Calculate split index
-    split_idx = int(len(df) * split_ratio)
+    Combine historical data with future exogenous data and split into train/test sets.
     
-    # Splitting the data
+    Parameters:
+    df : pd.DataFrame
+        Historical data including the target and exogenous variables.
+    future_exog_df : pd.DataFrame
+        Future exogenous variables for forecasting.
+    target_column : str
+        Name of the target column.
+    exog_vars : list of str
+        List of exogenous variable column names.
+    test_ratio : float
+        Ratio of data to use as the test set from the historical data.
+    
+    Returns:
+    tuple
+        y_train, y_test, X_train, X_test, X_future
+    """
+    # Split historical data into training and test sets based on test_ratio
+    split_idx = int(len(df) * (1 - test_ratio))
     train = df.iloc[:split_idx]
     test = df.iloc[split_idx:]
     
-    # Extracting target and exogenous variables
+    # Extract target and exogenous variables for training and test sets
     y_train = train[target_column]
     y_test = test[target_column]
     X_train = train[exog_vars]
     X_test = test[exog_vars]
     
-    return y_train, y_test, X_train, X_test
+    # Ensure `target_column` has NaNs in `future_exog_df` to avoid issues with the target in future data
+    future_exog_df[target_column] = np.nan
+    
+    # Set the future index to start right after the last date in the test set
+    future_start_date = test.index[-1] + pd.DateOffset(months=1)
+    future_exog_df.index = pd.date_range(start=future_start_date, periods=len(future_exog_df), freq='M')
+    
+    # Extract future exogenous variables only (no target)
+    X_future = future_exog_df[exog_vars]
 
-def hw_model(y_train, y_test, X_train, X_test, future_steps):
+    return y_train, y_test, X_train, X_test, X_future
+
+def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series):
+
     lr_model = LinearRegression().fit(X_train, y_train)
-
     train_pred = lr_model.predict(X_train)
     train_resid = y_train - train_pred
 
     # Apply Holt-Winters to the residuals
-    model_hw_resid = ExponentialSmoothing(
-        train_resid,
-        seasonal_periods=12,
-        trend='add',
-        seasonal='add'
-    ).fit()
+    model_hw_resid = ExponentialSmoothing(train_resid, seasonal_periods=12, trend='add', seasonal='add').fit()
 
-    # Forecast the residuals
+    # For test data
     resid_forecast = model_hw_resid.forecast(len(y_test))
-
-    # Final forecast is the sum of long-term forecast and residual forecast
     final_forecast = lr_model.predict(X_test) + resid_forecast
 
-    # Plot and evaluate
-    plt.plot(y_test.index, y_test, label='Test Data')
-    plt.plot(y_test.index, final_forecast, label='MLE + HW Forecast', linestyle='-')
-    plt.legend()
-    # plt.show()
-    st.pyplot(plt)
-
-    mae = mean_absolute_error(y_test, final_forecast)
     rmse = np.sqrt(mean_squared_error(y_test, final_forecast))
+    mae = mean_absolute_error(y_test, final_forecast)
     r2 = r2_score(y_test, final_forecast)
     n = len(y_test)
     p = X_test.shape[1]
@@ -66,14 +75,59 @@ def hw_model(y_train, y_test, X_train, X_test, future_steps):
     st.write(f'MAE: {mae:.3f}')
     st.write(f'RMSE: {rmse:.3f}')
     st.write(f'R2: {r2:.3%}')
-    st.write(f'Adjusted R2: {adjusted_r2:.3%}')
+    # st.write(f'Adjusted R2: {adjusted_r2:.3%}')
     st.write(f'MAPE: {mape:.3f}%')
 
-def run_hw_model(df, selected_series, selected_regressors, future_steps):
+    plt.figure(figsize=(12, 6))
+    plt.plot(y_train.index, y_train, label='Train Data')
+    plt.plot(y_test.index, y_test, label='Test Data')
+    plt.plot(y_test.index, final_forecast, label='MLE + HW Forecast', linestyle='-')
+    plt.legend()
+    plt.xlabel('Date')
+    plt.ylabel(selected_series)
+    plt.grid(True)
+    st.pyplot(plt)
+    
+    # For Future steps
+    resid_forecast_future = model_hw_resid.forecast(future_steps)
+    trend_forecast = lr_model.predict(X_future)
+    future_forecast = trend_forecast + resid_forecast_future
+
+    # Future forecasting using predicted exogenous variables
+    future_steps = len(X_future) if future_steps in (None, '') else future_steps
+    future_index = pd.date_range(start=X_test.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
+
+    # Plotting
+    plt.figure(figsize=(12, 6))
+    plt.plot(y_train.index, y_train, label='Train Data')
+    plt.plot(y_test.index, y_test, label='Test Data')
+    plt.plot(future_index, future_forecast + rmse, label='Future Forecast', linestyle='-', color = 'Green')
+    plt.legend()
+    plt.grid(True)
+    plt.title('Future Retail Sales Forecast')
+    plt.xlabel('Date')
+    plt.ylabel(selected_series)
+    st.pyplot(plt)
+
+    selected_series_column = selected_series.split(',')[0]
+
+    future_forecast_df = pd.DataFrame({
+                                        'Month': future_index,
+                                        f'Predicted {selected_series_column} ($ Million Dollars)': future_forecast.values
+                                    })
+
+    future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
+    future_forecast_df.set_index('Month', inplace=True)
+    future_forecast_df[f'Predicted {selected_series_column} ($ Million Dollars)'] = future_forecast_df[f'Predicted {selected_series_column} ($ Million Dollars)'].round(3)
+
+    # Show the table with future months and predictions
+    st.write("### Future Predictions Table")
+    st.dataframe(future_forecast_df)
+
+def run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps):
     target_column = selected_series
     exog_vars = selected_regressors
+    y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars)
 
-    y_train, y_test, X_train, X_test = prepare_data(df, target_column, exog_vars, split_ratio = 0.8)
     st.subheader("Holt-Winters Model Predictions vs Actual Data")
-
-    hw_model(y_train, y_test, X_train, X_test, future_steps)
+    mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series)

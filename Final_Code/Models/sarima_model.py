@@ -6,112 +6,60 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import streamlit as st
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from statsmodels.stats.outliers_influence import summary_table
 import matplotlib.pyplot as plt
 
-def prepare_data(df, target_column, exog_vars, split_ratio):
+def prepare_data(df, future_exog_df, target_column, exog_vars, test_ratio=0.2):
     """
-    Prepare and split the data into train and test sets, handling exogenous variables.
-    """
-    # 1. Data Scaling
-    scaler = StandardScaler()
-    df_scaled = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
-
-    # 2. Handle Outliers
-    def remove_outliers(df, columns, threshold=3):
-        for col in columns:
-            z_scores = np.abs((df[col] - df[col].mean()) / df[col].std())
-            df = df[z_scores < threshold]
-        return df
-
-    df_cleaned = remove_outliers(df_scaled, df_scaled.columns)
-
-    # Calculate split index
-    split_idx = int(len(df) * split_ratio)
+    Combine historical data with future exogenous data and split into train/test sets.
     
-    # Splitting the data
+    Parameters:
+    df : pd.DataFrame
+        Historical data including the target and exogenous variables.
+    future_exog_df : pd.DataFrame
+        Future exogenous variables for forecasting.
+    target_column : str
+        Name of the target column.
+    exog_vars : list of str
+        List of exogenous variable column names.
+    test_ratio : float
+        Ratio of data to use as the test set from the historical data.
+    
+    Returns:
+    tuple
+        y_train, y_test, X_train, X_test, X_future
+    """
+    # Split historical data into training and test sets based on test_ratio
+    split_idx = int(len(df) * (1 - test_ratio))
     train = df.iloc[:split_idx]
     test = df.iloc[split_idx:]
     
-    # Extracting target and exogenous variables
+    # Extract target and exogenous variables for training and test sets
     y_train = train[target_column]
     y_test = test[target_column]
     X_train = train[exog_vars]
     X_test = test[exog_vars]
     
-    return y_train, y_test, X_train, X_test
-
-def plot_exogenous_time_series(df, target, exog_vars):
-    """
-    Generate time series plots for the target and exogenous variables.
-    """
-
-    fig, axes = plt.subplots(nrows=len(exog_vars)+1, ncols=1, figsize=(12, (len(exog_vars)+1) * 4))
+    # Ensure `target_column` has NaNs in `future_exog_df` to avoid issues with the target in future data
+    future_exog_df[target_column] = np.nan
     
-    # Plot target variable
-    axes[0].plot(df.index, df[target], label=target)
-    axes[0].set_title(f'Time Series of {target}')
-    axes[0].set_xlabel('Date')
-    axes[0].set_ylabel(target)
-    axes[0].legend()
-
-    # Plot exogenous variables
-    for i, var in enumerate(exog_vars, start=1):
-        axes[i].plot(df.index, df[var], label=var)
-        axes[i].set_title(f'Time Series of {var}')
-        axes[i].set_xlabel('Date')
-        axes[i].set_ylabel(var)
-        axes[i].legend()
-
-        # Correlation
-        corr = df[var].corr(df[target])
-        axes[i].annotate(f'Corr with {target}: {corr:.2f}', xy=(0.05, 0.95), xycoords='axes fraction', 
-                         fontsize=12, horizontalalignment='left', verticalalignment='top', 
-                         backgroundcolor='white')
-
-    plt.tight_layout()
-    plt.show()
-
-def forecast_test_data(train, test, train_exog, test_exog, order, seasonal_order):
-    """
-    Test Data forecast and model evaluation metrics
-    """
-    # Fit SARIMAX model
-    model = SARIMAX(train, exog = train_exog, order = order, 
-                    seasonal_order = seasonal_order,
-                    enforce_stationarity = False, 
-                    enforce_invertibility = False)
+    # Set the future index to start right after the last date in the test set
+    future_start_date = test.index[-1] + pd.DateOffset(months=1)
+    future_exog_df.index = pd.date_range(start=future_start_date, periods=len(future_exog_df), freq='M')
     
-    results = model.fit(disp=False)    
-    # Forecast
-    forecast_steps = len(test)
-    forecast = results.get_forecast(steps=forecast_steps, exog=test_exog)
-    forecast_mean = forecast.predicted_mean
-    forecast_ci = forecast.conf_int(alpha=0.01)
-    
-    # Ensure forecast index aligns with test data index
-    forecast_mean.index = test.index
-    forecast_ci.index = test.index
+    # Extract future exogenous variables only (no target)
+    X_future = future_exog_df[exog_vars]
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(train.index, train, label='Train')
-    plt.plot(test.index, test, label='Test')
-    plt.plot(forecast_mean.index, forecast_mean, label='Forecast', linestyle='--')
-    plt.fill_between(forecast_ci.index, forecast_ci.iloc[:, 0], forecast_ci.iloc[:, 1], color='pink', alpha=0.25, label="C.I")
-    plt.title('SARIMAX Forecast vs Actuals')
-    plt.xticks(rotation=45)
-    plt.xlabel('Date')
-    plt.ylabel('Retail Sales (In Millions of Dollars)')
-    plt.legend()
-    plt.grid(True)  
-    st.pyplot(plt)
+    return y_train, y_test, X_train, X_test, X_future
 
-
-    # Evaluation Metrics
-    rmse = np.sqrt(mean_squared_error(test, forecast_mean))
-    mae = mean_absolute_error(test, forecast_mean)
-    r2 = r2_score(test, forecast_mean)
-    mape = np.mean(np.abs((test - forecast_mean) / test)) * 100
+def evaluate_forecast(actual, predicted):
+    """
+    Calculate RMSE, MAE, MAPE, and R2 metrics for evaluating the forecast.
+    """
+    mse = mean_squared_error(actual, predicted)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(actual, predicted)
+    mape = np.mean(np.abs((actual - predicted) / actual)) * 100
+    r2 = r2_score(actual, predicted)
 
     # rmse_val = round(rmse - (rmse * 0.95),2)
     # mae_val = round(mae - (mae * 0.95),2)
@@ -119,71 +67,111 @@ def forecast_test_data(train, test, train_exog, test_exog, order, seasonal_order
     rmse_val = rmse
     mae_val = mae
 
-    return results, {
+    return {
         'RMSE': rmse_val,
         'MAE': mae_val,
-        'R2': r2 * 100,
         'MAPE': mape,
-        'model_summary': results.summary().as_text()
+        'R2': r2 * 100
     }
 
-def forecast_future(train, test, train_exog, test_exog, order, seasonal_order, future_steps):
+def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, y_test=None):
     """
-    Forecast future values using a trained SARIMA model and future exogenous variables.
-
+    Fit SARIMAX model, forecast on test data, and then forecast future data using predicted exogenous variables.
+    
+    Parameters:
+    y_train : pd.Series
+        Training target data.
+    X_train : pd.DataFrame
+        Exogenous variables for training data.
+    X_test : pd.DataFrame
+        Exogenous variables for testing data.
+    X_future : pd.DataFrame
+        Exogenous variables for future forecasting.
+    order : tuple
+        SARIMA order parameters (p, d, q).
+    seasonal_order : tuple
+        Seasonal order parameters (P, D, Q, S).
+    y_test : pd.Series, optional
+        Actual test data for evaluation, if available.
+    
     Returns:
-    pandas.Series: Forecasted values.
+    tuple
+        Forecast mean, forecast confidence interval, and evaluation metrics.
     """
-    # Combine train and test data for full model fitting
-    full_data = pd.concat([train, test])
-    full_exog = pd.concat([train_exog, test_exog])
+    # Fit SARIMAX model
+    model = SARIMAX(y_train, exog=X_train, order=order, seasonal_order=seasonal_order, enforce_stationarity=False, enforce_invertibility=False)
+    results = model.fit(disp=False)
 
-    # Fit SARIMAX model on full data
-    model = SARIMAX(full_data, exog=full_exog, order=order, 
-                    seasonal_order=seasonal_order,
-                    enforce_stationarity=False, 
-                    enforce_invertibility=False)
+    test_steps = len(X_test)
+    test_forecast = results.get_forecast(steps=test_steps, exog=X_test)
+    test_forecast_mean = test_forecast.predicted_mean
+    test_forecast_ci = test_forecast.conf_int()
+
+    # Plot the historical data and test forecast
+    plt.figure(figsize=(12, 6))
+    plt.plot(y_train.index, y_train, label='Train')
+    plt.plot(y_test.index, y_test, label='Test')
+    plt.plot(test_forecast_mean.index, test_forecast_mean, linestyle='-', label='Test Forecast')
+    plt.fill_between(test_forecast_ci.index, test_forecast_ci.iloc[:, 0], test_forecast_ci.iloc[:, 1], color='pink', alpha=0.25)
+    plt.legend()
+    plt.grid(True)
+    plt.title('SARIMAX Forecast with Train and Test Data')
+    st.pyplot(plt)
+
+    # Evaluate test forecast if actual test values are provided
+    metrics = {}
+    if y_test is not None:
+        metrics = evaluate_forecast(y_test, test_forecast_mean)
+        st.write(f"RMSE: {metrics['RMSE']:.3f}")
+        st.write(f"MAE: {metrics['MAE']:.3f}")
+        st.write(f"R2: {metrics['R2']:.1f} %")
+        st.write(f"MAPE: {metrics['MAPE']:.1f} %")
     
-    results = model.fit(disp=False) 
+    rmse = metrics['RMSE']
 
-    # In-sample forecast (for the entire dataset)
-    in_sample_forecast = results.get_prediction(start=full_data.index[0], end=full_data.index[-1], exog=full_exog)
-    in_sample_forecast_mean = in_sample_forecast.predicted_mean
+    # Future forecasting using predicted exogenous variables
+    future_steps = len(X_future) if future_steps in (None, '') else future_steps
+    future_index = pd.date_range(start=X_test.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
+    future_forecast = results.get_forecast(steps=future_steps, exog=X_future)
+    future_forecast_mean = future_forecast.predicted_mean
+    future_forecast_ci = future_forecast.conf_int()
 
-def sarimax_analysis(train, test, train_exog, test_exog, order, seasonal_order, future_steps):
-    """
-    Perform SARIMAX analysis, forecasting, and evaluation with exogenous variables.
-    """
-    # Sarima model on train and test data
-    model_results, test_data_results = forecast_test_data(train, test, train_exog, test_exog, order, seasonal_order)
-    return test_data_results
+    future_forecast_df = pd.DataFrame({
+        'Month': future_index,
+        'Predicted Retail Sales ($ Million Dollars)': future_forecast_mean.values
+    })
 
-def future_forecast(model_results, steps, future_exog):
-    """
-    Generate future forecasts using the fitted SARIMAX model.
-    """
-    future_forecast = model_results.get_forecast(steps=steps, exog=future_exog)
-    forecast_mean = future_forecast.predicted_mean
-    forecast_ci = future_forecast.conf_int(alpha=0.05)
-    
-    return forecast_mean, forecast_ci
+    future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
+    future_forecast_df.set_index('Month', inplace=True)
+    future_forecast_df['Predicted Retail Sales ($ Million Dollars)'] = future_forecast_df['Predicted Retail Sales ($ Million Dollars)'].round(3)
 
-def run_sarima_model(df, selected_series, selected_regressors, future_steps):
+    plt.figure(figsize=(12, 6))
+    # plt.plot(y_train.index, y_train, label='Historical Data', color = 'blue')
+    if y_test is not None:
+        plt.plot(y_test.index, y_test, color = 'blue', label='Historical Data')
+    # plt.plot(future_index, future_forecast_mean + rmse, linestyle='-', label='Future Forecast', color='green')
+    plt.plot(future_index, future_forecast_mean, linestyle='-', label='Future Forecast', color='green')
+    plt.fill_between(future_index, future_forecast_ci.iloc[:, 0], future_forecast_ci.iloc[:, 1], color='pink', alpha=0.3, label='95% Prediction Interval')
+    plt.legend()
+    plt.title('SARIMAX Forecast with Historical and Future Data')
+    plt.xlabel('Time')
+    plt.grid(True)
+    plt.ylabel('Retail Sales')
+    st.pyplot(plt)
+
+    # Show the table with future months and predictions
+    st.write("### Future Predictions Table")
+    st.dataframe(future_forecast_df)
+
+    return test_forecast_mean, future_forecast_mean, metrics, future_forecast_df
+
+def run_sarima_model(df, selected_series, selected_regressors, future_exog_df, future_steps, order, seasonal_order):
     target_column = selected_series
     exog_vars = selected_regressors
 
-    y_train, y_test, X_train, X_test = prepare_data(df, target_column, exog_vars, split_ratio = 0.8)
+    y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars)
     
-    # Define model non-seasonal order and seasonal order
-    order = (0, 1, 0)
-    seasonal_order = (0, 1, 0, 12)
-
     st.subheader("SARIMAX Model Predictions vs Actual Data")
 
     # Run SARIMAX analysis
-    results = sarimax_analysis(y_train, y_test, X_train, X_test, order, seasonal_order, future_steps)
-    
-    st.write(f"RMSE: {results['RMSE']:.3f}")
-    st.write(f"MAE: {results['MAE']:.3f}")
-    st.write(f"R2: {results['R2']:.1f} %")
-    st.write(f"MAPE: {results['MAPE']:.1f} %")
+    test_forecast, future_forecast, metrics, future_forecast_df = sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, y_test)

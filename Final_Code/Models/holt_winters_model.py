@@ -82,32 +82,29 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
     r2 = r2_score(y_test, final_forecast)
     mape = np.mean(np.abs((y_test - final_forecast) / y_test)) * 100
 
-    print(f'RMSE: {rmse:.2f}')
-    print(f'MAE: {mae:.2f}')
-    print(f'MAPE: {mape:.2f}%')
-    print(f'R-Squared: {r2:.2%}')
-
     confidence_level = 0.95
     z_score = stats.norm.ppf((1 + confidence_level) / 2)
+    std_error = (rmse+mae)/2
 
-    std_error = rmse /2
-
-    ci_range_test = z_score * std_error
-
-    lower_ci_test = final_forecast - ci_range_test
-    upper_ci_test = final_forecast + ci_range_test
+    st.subheader("Model Training & Test Prediction")
 
     plt.figure(figsize=(12, 6))
-    plt.plot(y_train.index, y_train, label='Historical Data', color='blue')
-    plt.plot(y_test.index, y_test, color='blue')
-    plt.plot(y_test.index, final_forecast, label='MLE + HW Forecast', linestyle='-', color='orange')
-    plt.fill_between(y_test.index, lower_ci_test, upper_ci_test, color='orange', alpha=0.2, label=f'{confidence_level*100}% CI')
+    plt.plot(y_train.index, y_train, label='Actual Train', color='blue')
+    plt.plot(y_test.index, y_test, label='Actual Test', color='blue')
+    plt.plot(y_test.index, final_forecast, label='Predicted Test', color='green')
     plt.legend()
-    plt.xlabel('Date')
+    plt.xlabel('Month')
     plt.ylabel(selected_series)
     plt.grid(True)
-    plt.title('Test Period Forecast with Confidence Interval')
+    plt.title('Actual vs Test Predicted')
     st.pyplot(plt)
+
+    st.subheader("Test Evaluation Metrics")
+
+    st.write(f'RMSE: {rmse:.2f}')
+    st.write(f'MAE: {mae:.2f}')
+    st.write(f'MAPE: {mape:.2f}%')
+    st.write(f'R-Squared: {r2:.2%}')
 
     # For Future steps
     resid_forecast_future = model_hw_resid.forecast(future_steps)
@@ -120,25 +117,24 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
 
     ci_range_future = z_score * std_error
 
-    lower_ci_future = future_forecast + (ci_range_future*1.25)
-    upper_ci_future = future_forecast + (ci_range_future*0.75)
+    lower_ci_future = future_forecast + (ci_range_future*1.5)
+    upper_ci_future = future_forecast + (ci_range_future*0.5)
 
-    # Plotting
+    st.subheader("Future Predictions")
     plt.figure(figsize=(12, 6))
     plt.plot(y_train.index, y_train, color = "blue")
     plt.plot(y_test.index, y_test, label='Historical Data', color = "blue")
-    plt.plot(future_index, future_forecast + rmse, label='Future Forecast', linestyle='-', color='green')
-    plt.fill_between(future_index, lower_ci_future, upper_ci_future, color='green', alpha=0.2, label=f'{confidence_level*100}% CI')
+    plt.plot(future_index, future_forecast + rmse + mae, label='Future Predictions', linestyle='-', color='green')
+    plt.fill_between(future_index, lower_ci_future, upper_ci_future, color='pink', alpha=0.25, label=f'{confidence_level*100}% CI')
     plt.legend()
-    plt.grid(True)
-    plt.title(f'Future {selected_series.split("(")[0]} Forecast with Confidence Interval')
-    plt.xlabel('Date')
+    plt.title(f'Future {selected_series.split("(")[0]} Forecast')
+    plt.xlabel('Month')
     plt.ylabel(selected_series)
     st.pyplot(plt)
 
     future_forecast_df = pd.DataFrame({
         'Month': future_index,
-        f'Predicted {selected_series}': future_forecast.values
+        f'Predicted {selected_series}': future_forecast.values + rmse + mae
     })
 
     future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
@@ -151,5 +147,5 @@ def run_hw_model(df, selected_series, selected_regressors, future_exog_df, futur
     exog_vars = selected_regressors
     y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars, lag_feature)
 
-    st.subheader("Holt-Winters Model Predictions vs Actual Data")
+    st.subheader("Model Training & Test Evaluation")
     return mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series)

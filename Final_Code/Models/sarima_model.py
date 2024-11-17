@@ -107,21 +107,24 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     test_forecast_mean = test_forecast.predicted_mean
     test_forecast_ci = test_forecast.conf_int()
 
+    st.subheader("Model Training & Test Prediction")
+
     # Plot the historical data and test forecast
     plt.figure(figsize=(12, 6))
-    plt.plot(y_train.index, y_train, label='Train')
-    plt.plot(y_test.index, y_test, label='Test')
-    plt.plot(test_forecast_mean.index, test_forecast_mean, linestyle='-', label='Test Forecast')
-    plt.fill_between(test_forecast_ci.index, test_forecast_ci.iloc[:, 0], test_forecast_ci.iloc[:, 1], color='pink', alpha=0.25)
+    plt.plot(y_train.index, y_train, label='Actual Train', color='blue')
+    plt.plot(y_test.index, y_test, label='ACtual Test', color='blue')
+    plt.plot(test_forecast_mean.index, test_forecast_mean, label='Predicted Test', color='blue')
     plt.legend()
-    plt.grid(True)
-    plt.title('SARIMAX Forecast with Train and Test Data')
+    plt.xlabel('Month')
+    plt.ylabel(selected_series)
+    plt.title('Actual vs Test Predicted')
     st.pyplot(plt)
 
     # Evaluate test forecast if actual test values are provided
     metrics = {}
     if y_test is not None:
         metrics = evaluate_forecast(y_test, test_forecast_mean)
+        st.subheader("Test Evaluation Metrics")
         st.write(f"RMSE: {metrics['RMSE']:.3f}")
         st.write(f"MAE: {metrics['MAE']:.3f}")
         st.write(f"MAPE: {metrics['MAPE']:.1f} %")
@@ -139,6 +142,19 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     future_forecast_mean = future_forecast.predicted_mean
     future_forecast_ci = future_forecast.conf_int()
 
+    st.subheader("Future Predictions")
+    plt.figure(figsize=(12, 6))
+    plt.plot(y_train.index, y_train, color = 'blue')
+    plt.plot(y_test.index, y_test, color = 'blue', label='Historical Data')
+    # plt.plot(future_index, future_forecast_mean + rmse, linestyle='-', label='Future Forecast', color='green')
+    plt.plot(future_index, future_forecast_mean, linestyle='-', label='Future Forecast', color='green')
+    plt.fill_between(future_index, future_forecast_ci.iloc[:, 0], future_forecast_ci.iloc[:, 1], color='pink', alpha=0.25, label='95% CI')
+    plt.legend()
+    plt.title(f'Future {selected_series.split("(")[0]} Forecast')
+    plt.xlabel('Month')
+    plt.ylabel(selected_series)
+    st.pyplot(plt)
+
     future_forecast_df = pd.DataFrame({
         'Month': future_index,
         f'Predicted {selected_series}': future_forecast_mean.values
@@ -146,20 +162,6 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
 
     future_forecast_df['Month'] = future_forecast_df['Month'].dt.date
     future_forecast_df[f'Predicted {selected_series}'] = future_forecast_df[f'Predicted {selected_series}'].round(2)
-
-    plt.figure(figsize=(12, 6))
-    plt.plot(y_train.index, y_train, color = 'blue')
-    if y_test is not None:
-        plt.plot(y_test.index, y_test, color = 'blue', label='Historical Data')
-    # plt.plot(future_index, future_forecast_mean + rmse, linestyle='-', label='Future Forecast', color='green')
-    plt.plot(future_index, future_forecast_mean, linestyle='-', label='Future Forecast', color='green')
-    plt.fill_between(future_index, future_forecast_ci.iloc[:, 0], future_forecast_ci.iloc[:, 1], color='pink', alpha=0.3, label='95% Prediction Interval')
-    plt.legend()
-    plt.title('SARIMAX Forecast with Historical and Future Data')
-    plt.xlabel('Time')
-    plt.grid(True)
-    plt.ylabel('Retail Sales')
-    st.pyplot(plt)
 
     return future_forecast_df, rmse, mae, mape, r2
 
@@ -169,7 +171,5 @@ def run_sarima_model(df, selected_series, selected_regressors, future_exog_df, f
 
     y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars)
     
-    st.subheader("SARIMAX Model Predictions vs Actual Data")
-
-    # Run SARIMAX analysis
+    st.subheader("Model Training & Evaluation")
     return sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, target_column, y_test)

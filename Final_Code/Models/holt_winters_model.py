@@ -84,13 +84,16 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
 
     confidence_level = 0.95
     z_score = stats.norm.ppf((1 + confidence_level) / 2)
-    std_error = (rmse+mae)/2
+
+    std_error = (rmse + mae)/2
+
+    ci_range_test = z_score * std_error
 
     st.subheader("Model Training & Test Prediction")
 
     plt.figure(figsize=(12, 6))
     plt.plot(y_train.index, y_train, label='Actual Train', color='blue')
-    plt.plot(y_test.index, y_test, label='Actual Test', color='blue')
+    plt.plot(y_test.index, y_test, label='Actual Test', color='orange')
     plt.plot(y_test.index, final_forecast, label='Predicted Test', color='green')
     plt.legend()
     plt.xlabel('Month')
@@ -117,8 +120,8 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
 
     ci_range_future = z_score * std_error
 
-    lower_ci_future = future_forecast + (ci_range_future*1.5)
-    upper_ci_future = future_forecast + (ci_range_future*0.5)
+    lower_ci_future = future_forecast + mae
+    upper_ci_future = future_forecast + ci_range_future*1.5
 
     st.subheader("Future Predictions")
     plt.figure(figsize=(12, 6))
@@ -127,7 +130,7 @@ def mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selec
     plt.plot(future_index, future_forecast + rmse + mae, label='Future Predictions', linestyle='-', color='green')
     plt.fill_between(future_index, lower_ci_future, upper_ci_future, color='pink', alpha=0.25, label=f'{confidence_level*100}% CI')
     plt.legend()
-    plt.title(f'Future {selected_series.split("(")[0]} Forecast')
+    plt.title(f'Future {selected_series} Forecast')
     plt.xlabel('Month')
     plt.ylabel(selected_series)
     st.pyplot(plt)
@@ -147,5 +150,4 @@ def run_hw_model(df, selected_series, selected_regressors, future_exog_df, futur
     exog_vars = selected_regressors
     y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars, lag_feature)
 
-    st.subheader("Model Training & Test Evaluation")
     return mle_hw_model(y_train, y_test, X_train, X_test, X_future, future_steps, selected_series)

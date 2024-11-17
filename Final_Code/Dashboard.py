@@ -335,7 +335,7 @@ if uploaded_file:
         if selected_series == "Retail sales($MM)":
 
             st.sidebar.header("Order Configurations for SARIMAX")
-            p = st.sidebar.slider("p (AR)", min_value=1, max_value=7, value=1, step=1)
+            p = st.sidebar.slider("p (AR)", min_value=0, max_value=7, value=1, step=1)
             q = st.sidebar.slider("Q (MA)", min_value=0, max_value=7, value=1, step=1)
             d = st.sidebar.slider("d (differencing)", min_value=0, max_value=3, value=1, step=1)
             order = (p, d, q)
@@ -353,16 +353,16 @@ if uploaded_file:
             # seasonal_order = (0, 1, 1, 12)
 
             st.sidebar.header("Order Configurations for SARIMAX")
-            p = st.sidebar.slider("p (AR)", min_value=1, max_value=7, value=1, step=1)
-            q = st.sidebar.slider("Q (MA)", min_value=0, max_value=7, value=1, step=1)
-            d = st.sidebar.slider("d (differencing)", min_value=0, max_value=3, value=1, step=1)
+            p = st.sidebar.slider("p (AR)", min_value=0, max_value=7, value=0, step=1)
+            q = st.sidebar.slider("Q (MA)", min_value=0, max_value=7, value=2, step=1)
+            d = st.sidebar.slider("d (differencing)", min_value=0, max_value=2, value=1, step=1)
             order = (p, d, q)
 
-            # seasonal_order = (1, 1, 1, 12)
+            # seasonal_order = (0, 0, 1, 12)
             st.sidebar.subheader("Seasonal Orders")
-            P = st.sidebar.slider("P (S-AR)", min_value=1, max_value=7, value=1, step=1)
+            P = st.sidebar.slider("P (S-AR)", min_value=0, max_value=7, value=0, step=1)
             Q = st.sidebar.slider("Q (S-MA)", min_value=0, max_value=7, value=1, step=1)
-            D = st.sidebar.slider("D (Seasonal differencing)", min_value=0, max_value=3, value=1, step=1)
+            D = st.sidebar.slider("D (Seasonal differencing)", min_value=0, max_value=2, value=0, step=1)
             m = st.sidebar.slider("m (Seasonal Period)", min_value=2, max_value=24, value=12, step=1)
             seasonal_order = (P, D, Q, m)
 
@@ -371,7 +371,7 @@ if uploaded_file:
             # seasonal_order = (1, 1, 1, 12)
 
             st.sidebar.header("Order Configurations for SARIMAX")
-            p = st.sidebar.slider("p (AR)", min_value=1, max_value=7, value=1, step=1)
+            p = st.sidebar.slider("p (AR)", min_value=0, max_value=7, value=1, step=1)
             q = st.sidebar.slider("Q (MA)", min_value=0, max_value=7, value=1, step=1)
             d = st.sidebar.slider("d (differencing)", min_value=0, max_value=3, value=1, step=1)
             order = (p, d, q)

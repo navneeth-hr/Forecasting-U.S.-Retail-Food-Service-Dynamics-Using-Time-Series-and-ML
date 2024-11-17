@@ -112,8 +112,8 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     # Plot the historical data and test forecast
     plt.figure(figsize=(12, 6))
     plt.plot(y_train.index, y_train, label='Actual Train', color='blue')
-    plt.plot(y_test.index, y_test, label='ACtual Test', color='blue')
-    plt.plot(test_forecast_mean.index, test_forecast_mean, label='Predicted Test', color='blue')
+    plt.plot(y_test.index, y_test, label='ACtual Test', color='orange')
+    plt.plot(test_forecast_mean.index, test_forecast_mean, label='Predicted Test', color='green')
     plt.legend()
     plt.xlabel('Month')
     plt.ylabel(selected_series)
@@ -150,7 +150,7 @@ def sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, 
     plt.plot(future_index, future_forecast_mean, linestyle='-', label='Future Forecast', color='green')
     plt.fill_between(future_index, future_forecast_ci.iloc[:, 0], future_forecast_ci.iloc[:, 1], color='pink', alpha=0.25, label='95% CI')
     plt.legend()
-    plt.title(f'Future {selected_series.split("(")[0]} Forecast')
+    plt.title(f'Future {selected_series} Forecast')
     plt.xlabel('Month')
     plt.ylabel(selected_series)
     st.pyplot(plt)
@@ -171,5 +171,4 @@ def run_sarima_model(df, selected_series, selected_regressors, future_exog_df, f
 
     y_train, y_test, X_train, X_test, X_future = prepare_data(df, future_exog_df, target_column, exog_vars)
     
-    st.subheader("Model Training & Evaluation")
     return sarimax_forecast(y_train, X_train, X_test, X_future, order, seasonal_order, future_steps, target_column, y_test)

@@ -79,11 +79,15 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         y_train_actual = df[selected_series].iloc[:len(train_original)]
         y_test_actual = df[selected_series].iloc[-len(test_original):]
 
+        st.subheader("Model Training & Test Prediction")
+
         plt.figure(figsize=(10, 6))
-        plt.plot(y_train_actual.index, y_train_actual.values, label="True Train Sales", color='blue')
-        plt.plot(y_test_actual.index, y_test_actual.values, label="True Test Sales", color='red')
-        plt.plot(y_test_actual.index, test_original, label="Corrected Predicted Test Sales", color='brown')
-        plt.title("XGBoost Predictions vs Actual (Original Data) with Bias Corrected")
+        plt.plot(y_train_actual.index, y_train_actual.values, label="Actual Train", color='blue')
+        plt.plot(y_test_actual.index, y_test_actual.values, label="Actual Test", color='orange')
+        plt.plot(y_test_actual.index, test_original, label="Predicted Test", color='green')
+        plt.xlabel('Month')
+        plt.ylabel(f'{selected_series}')
+        plt.title('Actual vs Test Predicted')
         plt.legend()
         st.pyplot(plt)
 
@@ -93,17 +97,21 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         mape = mean_absolute_percentage_error(y_test_actual, test_original) * 100
         r2 = r2_score(y_test_actual, test_original) * 100
 
+        st.subheader("Test Evaluation Metrics")
+
         st.write(f"**RMSE:** {rmse:.2f}")
         st.write(f"**MAE:** {mae:.2f}")
         st.write(f"**MAPE:** {mape:.2f} %")
         st.write(f"**R-Squared:** {r2:.2f} %")
+
+        st.subheader("Feature Importance")
 
         # Feature importance plot
         feature_importances = xgb_model.feature_importances_
 
         plt.figure(figsize=(10, 6))
         sns.barplot(x=features, y=feature_importances)
-        plt.title('Feature Importances in XGBoost Model')
+        plt.title('Feature Importances')
         plt.xlabel('Features')
         plt.ylabel('Importance')
         plt.xticks(rotation=45)
@@ -136,14 +144,16 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         future_predictions_with_bias = [pred + test_bias for pred in future_predictions_inv]
 
         future_index = pd.date_range(start=df.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
-
+        
+        st.subheader("Future Predictions")
+        
         # Plot future predictions
         plt.figure(figsize=(10, 6))
-        plt.plot(df.index, df[selected_series], label='Historical Sales')
+        plt.plot(df.index, df[selected_series], label='Historical Sales', color = 'blue')
         plt.plot(future_index, future_predictions_with_bias, label='Future Predictions', linestyle='--', color='green')
         plt.xlabel('Month')
         plt.ylabel(f'{selected_series}')
-        plt.title(f'Future {selected_series} Sales Predictions')
+        plt.title(f'Future {selected_series}')
         plt.legend()
         st.pyplot(plt)
 

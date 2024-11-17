@@ -68,7 +68,7 @@ if uploaded_file:
 
     if forecast_type == "Short-term":
         future_steps = st.sidebar.slider("Future Steps (months)", min_value=1, max_value=8, value=3, key="future_steps")
-        model_type = st.sidebar.selectbox("Select Model", ["Holts Winter", "SARIMAX"], key="model_type")
+        model_type = st.sidebar.selectbox("Select Model", ["Holt Winters", "SARIMAX"], key="model_type")
         st.sidebar.info("Holts Winter and SARIMAX are recommended for short-term forecasting up to 8 months.")
     else:
         future_steps = st.sidebar.slider("Future Steps (months)", min_value=8, max_value=24, value=12, key="future_steps")
@@ -400,7 +400,7 @@ if uploaded_file:
     # Display selected data series
     if selected_series in df.columns:
         data = df[[selected_series]]
-        st.write(f"Displaying {selected_series} Data")
+        st.subheader(f"Displaying {selected_series} Data")
         plot_data(data, selected_series)
     else:
         st.error(f"Selected series '{selected_series}' not found in the dataset.")

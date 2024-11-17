@@ -5,8 +5,7 @@ import math
 
 
 def plot_data(data, title):
-    st.subheader("Historical Sales Data")
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 6))
     plt.plot(data.index, data.values, label=title)
     plt.xlabel('Month', fontsize=12)
     plt.ylabel(title, fontsize=12)

@@ -73,16 +73,11 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
     mape = mean_absolute_percentage_error(y_test_inv, test_predict[:, 0]) * 100
     r2 = r2_score(y_test_inv, test_predict[:, 0]) * 100
 
-    st.write(f"*RMSE:* {rmse:.2f}")
-    st.write(f"*MAE:* {mae:.2f}")
-    st.write(f"*MAPE:* {mape:.2f}%")
-    st.write(f"*R-Squared:* {r2:.2f}%")
-
     # Generate future predictions iteratively
     future_predictions = []
     current_input = X_future
 
-    for _ in range(future_steps):
+    for step in range(future_steps):
         next_pred = model.predict(current_input)
         future_predictions.append(next_pred[0, 0])
 
@@ -93,32 +88,44 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
     # Inverse transform the future predictions
     future_predict = target_scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1)).flatten()
 
-    # Calculate 95% prediction intervals
+    # Calculate 95% prediction intervals with scaling for future uncertainty
     confidence_interval = 1.96 * residual_std
-    lower_bound = future_predict - confidence_interval
-    upper_bound = future_predict + confidence_interval
+    interval_scaling = np.sqrt(np.arange(1, future_steps + 1))
+    lower_bound = future_predict - (confidence_interval * interval_scaling)
+    upper_bound = future_predict + (confidence_interval * interval_scaling)
+
+    st.subheader("Model Training & Test Prediction")
 
     # Plot evaluation results
     plt.figure(figsize=(12, 6))
-    plt.plot(df.index[sequence_length:len(y_train_inv) + sequence_length], y_train_inv, label='Actual Train')
-    plt.plot(df.index[len(y_train_inv) + sequence_length:], y_test_inv, label='Actual Test')
-    plt.plot(df.index[len(y_train_inv) + sequence_length:], test_predict, label='Predicted Test')
+    plt.plot(df.index[sequence_length:len(y_train_inv) + sequence_length], y_train_inv, label='Actual Train', color='blue')
+    plt.plot(df.index[len(y_train_inv) + sequence_length:], y_test_inv, label='Actual Test', color='orange')
+    plt.plot(df.index[len(y_train_inv) + sequence_length:], test_predict, label='Predicted Test', color='green')
     plt.xlabel('Month')
     plt.ylabel(f'{selected_series}')
-    plt.title(f'Actual vs Predicted {selected_series} Sales (Evaluation)')
+    plt.title('Actual vs Test Predicted')
     plt.legend()
     st.pyplot(plt)
+
+    st.subheader("Test Evaluation Metrics")
+
+    st.write(f"*RMSE:* {rmse:.2f}")
+    st.write(f"*MAE:* {mae:.2f}")
+    st.write(f"*MAPE:* {mape:.2f}%")
+    st.write(f"*R-Squared:* {r2:.2f}%")
 
     # Plot future predictions with prediction intervals
     future_index = pd.date_range(start=df.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
 
+    st.subheader("Future Predictions")
+
     plt.figure(figsize=(12, 6))
-    plt.plot(df.index, df[selected_series], label='Historical Sales')
-    plt.plot(future_index, future_predict, label='Future Predictions', linestyle='--', color='orange')
-    plt.fill_between(future_index, lower_bound, upper_bound, color='lightgrey', alpha=0.5, label='95% Prediction Interval')
+    plt.plot(df.index, df[selected_series], label='Historical Sales', color='blue')
+    plt.plot(future_index, future_predict, label='Future Predictions', linestyle='--', color='green')
+    plt.fill_between(future_index, lower_bound, upper_bound, color='pink', alpha=0.25, label='95% CI')
     plt.xlabel('Month')
     plt.ylabel(f'{selected_series}')
-    plt.title(f'Future {selected_series} Sales Predictions with 95% Prediction Interval')
+    plt.title(f'Future {selected_series}')
     plt.legend()
     st.pyplot(plt)
 

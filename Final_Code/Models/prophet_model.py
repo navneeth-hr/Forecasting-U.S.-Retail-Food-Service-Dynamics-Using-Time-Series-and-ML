@@ -12,7 +12,7 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
 
     # Prepare data for Prophet
     df_prophet = data[[target_col] + regressors].reset_index()
-    df_prophet.rename(columns={'Month': 'ds', target_col: 'y'}, inplace=True)  # Prophet requires 'ds' (date) and 'y' (target)
+    df_prophet.rename(columns={'Month': 'ds', target_col: 'y'}, inplace=True)
 
     # Split data into training and testing sets
     split_idx = int(len(df_prophet) * train_size)
@@ -51,11 +51,11 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
     # Generate predictions
     forecast = model.predict(future)
 
-    # Extract predictions for test and future periods
-    forecast_test = forecast[-(len(test_df) + future_steps):-future_steps]['yhat'].values
-    forecast_future = forecast[-future_steps:]['yhat'].values
+    # Extract predictions and 95% CI for test and future periods
+    forecast_test = forecast[-(len(test_df) + future_steps):-future_steps][['yhat', 'yhat_lower', 'yhat_upper']]
+    forecast_future = forecast[-future_steps:][['yhat', 'yhat_lower', 'yhat_upper']]
     y_true = test_df['y'].values
-    y_pred = forecast_test
+    y_pred = forecast_test['yhat'].values
 
     # Calculate evaluation metrics
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
@@ -63,16 +63,21 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
     r2 = r2_score(y_true, y_pred) * 100
     mape = mean_absolute_percentage_error(y_true, y_pred) * 100
 
+    st.subheader("Model Training & Test Prediction")
+
     # Plot actual vs. predicted results for the test period
     plt.figure(figsize=(12, 6))
-    plt.plot(df_prophet['ds'], df_prophet['y'], label='Actual Sales', color='blue')
-    plt.plot(test_df['ds'], forecast_test, label='Predicted Sales (Test)', color='orange')
+    plt.plot(df_prophet['ds'], df_prophet['y'], label='Actual Train', color='blue')
+    plt.plot(test_df['ds'], forecast_test['yhat'], label='Predicted Test', color='green')
+    #plt.fill_between(test_df['ds'], forecast_test['yhat_lower'], forecast_test['yhat_upper'], color='lightgrey', alpha=0.5, label='95% Prediction Interval')
     plt.axvline(df_prophet['ds'][split_idx], color='red', linestyle='--', label='Train/Test Split')
-    plt.xlabel('Date')
-    plt.ylabel('Retail Sales (Millions)')
-    plt.title(f'Prophet Predictions {target_col} (Test Period)')
+    plt.xlabel('Month')
+    plt.ylabel(f'{target_col}')
+    plt.title(f'Actual vs Test Predicted')
     plt.legend()
     st.pyplot(plt)
+
+    st.subheader("Test Evaluation Metrics")
 
     # Display evaluation metrics
     st.write(f"**RMSE:** {rmse:.2f}")
@@ -80,21 +85,26 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
     st.write(f"**MAPE:** {mape:.2f} %")
     st.write(f"**R-Squared:** {r2:.2f} %")
 
-    # Future Predictions Plot
+    st.subheader("Future Predictions")
+
+    # Future Predictions Plot with 95% CI
     future_index = pd.date_range(start=data.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq=freq)
     plt.figure(figsize=(12, 6))
     plt.plot(data.index, data[target_col], label='Historical Sales', color='blue')
-    plt.plot(future_index, forecast_future, label='Future Predictions', linestyle='--', color='orange')
-    plt.xlabel('Date')
-    plt.ylabel('Retail Sales (Millions)')
-    plt.title(f'Future {target_col} Sales Predictions')
+    plt.plot(future_index, forecast_future['yhat'], label='Future Predictions', linestyle='--', color='green')
+    plt.fill_between(future_index, forecast_future['yhat_lower'], forecast_future['yhat_upper'], color='pink', alpha=0.25, label='95% CI')
+    plt.xlabel('Month')
+    plt.ylabel(f'{target_col}')
+    plt.title(f'Future {target_col}')
     plt.legend()
     st.pyplot(plt)
 
     # Future predictions DataFrame
     future_predictions_df = pd.DataFrame({
         'Month': future_index,
-        f'Predicted {target_col}': forecast_future
+        f'Predicted {target_col}': forecast_future['yhat'].values,
+        'Lower Bound': forecast_future['yhat_lower'].values,
+        'Upper Bound': forecast_future['yhat_upper'].values
     })
     future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 

@@ -35,7 +35,8 @@ def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_
         df.dropna(inplace=True)
 
         # Define features and target
-        X = df[[f'lag_{i}' for i in range(1, 3)] + ['rolling_3', 'rolling_6'] + selected_regressors]
+        features = [f'lag_{i}' for i in range(1, 3)] + ['rolling_3', 'rolling_6'] + selected_regressors
+        X = df[features]
         y = df['diff']
 
         # Split data into train and test sets
@@ -80,14 +81,21 @@ def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_
         y_train_actual = df[selected_series].iloc[:len(train_original)]
         y_test_actual = df[selected_series].iloc[-len(test_original):]
 
+        st.subheader("Model Training & Test Prediction")
+
         plt.figure(figsize=(10, 6))
-        plt.plot(y_train_actual.index, y_train_actual.values, label="True Train Sales", color='blue')
-        plt.plot(y_test_actual.index, y_test_actual.values, label="True Test Sales", color='red')
-        plt.plot(y_test_actual.index, test_original, label="Predicted Test Sales", color='brown')
+        plt.plot(y_train_actual.index, y_train_actual.values, label="Actual Train", color='blue')
+        plt.plot(y_test_actual.index, y_test_actual.values, label="Actual Test", color='orange')
+        plt.plot(y_test_actual.index, test_original, label="Predicted Test", color='green')
         plt.title("Random Forest Predictions vs Actual (Original Data)")
+        plt.xlabel('Month')
+        plt.ylabel(f'{selected_series}')
+        plt.title('Actual vs Test Predicted')
         plt.legend()
         st.pyplot(plt)
-
+        
+        st.subheader("Test Evaluation Metrics")
+        
         # Evaluation metrics for test data
         rmse = math.sqrt(mean_squared_error(y_test_actual, test_original))
         mae = mean_absolute_error(y_test_actual, test_original)
@@ -98,6 +106,19 @@ def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_
         st.write(f"**MAE:** {mae:.2f}")
         st.write(f"**MAPE:** {mape:.2f} %")
         st.write(f"**R-Squared:** {r2:.2f} %")
+
+        st.subheader("Feature Importance")
+
+        # Feature importance plot
+        feature_importances = best_model.feature_importances_
+
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x=features, y=feature_importances)
+        plt.title('Feature Importances')
+        plt.xlabel('Features')
+        plt.ylabel('Importance')
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
 
         # Prepare data for future predictions
         last_sequence = X.iloc[-1:].copy()
@@ -127,13 +148,15 @@ def run_rf_model(df, selected_series, selected_regressors, n_estimators, future_
 
         future_index = pd.date_range(start=df.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
 
+        st.subheader("Future Predictions")
+
         # Plot future predictions
         plt.figure(figsize=(10, 6))
-        plt.plot(df.index, df[selected_series], label='Historical Sales')
+        plt.plot(df.index, df[selected_series], label='Historical Sales', color='blue')
         plt.plot(future_index, future_predictions_with_bias, label='Future Predictions', linestyle='--', color='green')
         plt.xlabel('Month')
         plt.ylabel(f'{selected_series}')
-        plt.title(f'Future {selected_series} Sales Predictions')
+        plt.title(f'Future {selected_series}')
         plt.legend()
         st.pyplot(plt)
 

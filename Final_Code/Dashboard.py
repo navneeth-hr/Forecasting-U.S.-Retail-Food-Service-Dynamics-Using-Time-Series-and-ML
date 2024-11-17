@@ -83,14 +83,14 @@ if uploaded_file:
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
-            units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=150)
-            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
+            units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
+            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.01, max_value=1.0, value=0.01)
         elif selected_series == "Food services and drinking places($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=95)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
-            batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=32)
+            batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=24)
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
-            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.2)
+            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.01, max_value=1.0, value=0.05)
         elif selected_series == "Motor vehicle and parts dealers($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
@@ -98,11 +98,11 @@ if uploaded_file:
             units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
             dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
         elif selected_series == "Furniture and home furnishings stores($MM)":
-            sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
+            sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=48)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
             batch_size = st.sidebar.slider("Batch Size (LSTM)", min_value=1, max_value=64, value=2)
-            units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=100)
-            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.1, max_value=1.0, value=0.1)
+            units = st.sidebar.slider("Units (LSTM)", min_value=50, max_value=300, value=85)
+            dropout_rate = st.sidebar.slider("Dropout rate (LSTM)", min_value=0.01, max_value=1.0, value=0.01)
         elif selected_series == "Electronics and appliance stores($MM)":
             sequence_length = st.sidebar.slider("Sequence Length (LSTM)", min_value=12, max_value=150, value=100)
             epochs = st.sidebar.slider("Epochs (LSTM)", min_value=5, max_value=50, value=20)
@@ -190,10 +190,10 @@ if uploaded_file:
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
         elif selected_series == "Furniture and home furnishings stores($MM)":
-            changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.2)
-            seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=7.0)
-            periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=18)
-            seasonality_mode = st.sidebar.selectbox("Seasonality Mode (Prophet)", ["additive", "multiplicative"],index=0)
+            changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.07)
+            seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=10.0)
+            periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=24)
+            seasonality_mode = st.sidebar.selectbox("Seasonality Mode (Prophet)", ["additive", "multiplicative"],index=1)
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
@@ -321,12 +321,12 @@ if uploaded_file:
             max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
             min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
         elif selected_series == "Food services and drinking places($MM)":
-            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.07)
+            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.03)
             n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
             max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
             min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
         elif selected_series == "Furniture and home furnishings stores($MM)":
-            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.1)
+            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.05)
             n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
             max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
             min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
@@ -377,7 +377,8 @@ if uploaded_file:
     if st.sidebar.button("Submit"):
 
         if model_type == "LSTM":
-            future_predictions_df, rmse, mae, mape, r2 = run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_exog_df, future_steps)
+            #future_predictions_df, rmse, mae, mape, r2 = run_lstm_model(df, selected_series, selected_regressors, sequence_length, epochs, batch_size, units, dropout_rate, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, units, dropout_rate, future_steps)
 
         elif model_type == "Prophet":
             future_predictions_df, rmse, mae, mape, r2 = run_prophet_model(df, selected_series, selected_regressors, periods, changepoint_prior_scale, seasonality_prior_scale, seasonality_mode,

@@ -59,9 +59,21 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         train_predictions = xgb_model.predict(X_train)
         test_predictions = xgb_model.predict(X_test)
 
+        # Calculate residuals
+        train_residuals = y_train - train_predictions
+        test_residuals = y_test - test_predictions
+
+        # Calculate Mean Bias (bias)
+        train_bias = np.mean(train_residuals)
+        test_bias = np.mean(test_residuals)
+
+        # Correct the forecast by adding the bias
+        corrected_train_predictions = train_predictions + train_bias
+        corrected_test_predictions = test_predictions + test_bias
+
         # Revert differencing
-        train_original = revert_differencing(df, train_predictions, selected_series)
-        test_original = revert_differencing(df, test_predictions, selected_series)
+        train_original = revert_differencing(df, corrected_train_predictions, selected_series)
+        test_original = revert_differencing(df, corrected_test_predictions, selected_series)
 
         # Plot for train and test predictions
         y_train_actual = df[selected_series].iloc[:len(train_original)]
@@ -70,8 +82,8 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         plt.figure(figsize=(10, 6))
         plt.plot(y_train_actual.index, y_train_actual.values, label="True Train Sales", color='blue')
         plt.plot(y_test_actual.index, y_test_actual.values, label="True Test Sales", color='red')
-        plt.plot(y_test_actual.index, test_original, label="Predicted Test Sales", color='brown')
-        plt.title("XGBoost Predictions vs Actual (Original Data)")
+        plt.plot(y_test_actual.index, test_original, label="Corrected Predicted Test Sales", color='brown')
+        plt.title("XGBoost Predictions vs Actual (Original Data) with Bias Corrected")
         plt.legend()
         st.pyplot(plt)
 
@@ -119,12 +131,16 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
 
         # Revert differencing for future predictions
         future_predictions_inv = revert_differencing(df, future_predictions, selected_series)
+
+        # Apply the bias correction to the future predictions
+        future_predictions_with_bias = [pred + test_bias for pred in future_predictions_inv]
+
         future_index = pd.date_range(start=df.index[-1] + pd.offsets.MonthBegin(), periods=future_steps, freq='MS')
 
         # Plot future predictions
         plt.figure(figsize=(10, 6))
         plt.plot(df.index, df[selected_series], label='Historical Sales')
-        plt.plot(future_index, future_predictions_inv, label='Future Predictions', linestyle='--', color='green')
+        plt.plot(future_index, future_predictions_with_bias, label='Future Predictions', linestyle='--', color='green')
         plt.xlabel('Month')
         plt.ylabel(f'{selected_series}')
         plt.title(f'Future {selected_series} Sales Predictions')
@@ -134,7 +150,7 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         # Create a DataFrame for future months and predicted values
         future_predictions_df = pd.DataFrame({
             'Month': future_index,
-            f'Predicted {selected_series}': future_predictions_inv
+            f'Predicted {selected_series}': future_predictions_with_bias
         })
         future_predictions_df['Month'] = pd.to_datetime(future_predictions_df['Month']).dt.date
 

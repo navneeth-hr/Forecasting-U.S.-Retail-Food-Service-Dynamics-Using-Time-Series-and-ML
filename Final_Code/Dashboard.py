@@ -314,6 +314,23 @@ if uploaded_file:
         max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
         min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
 
+    elif model_type == "XGBoost":
+        if selected_series == "Retail sales($MM)":
+            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.01)
+            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
+            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
+            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
+        elif selected_series == "Food services and drinking places($MM)":
+            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.07)
+            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
+            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
+            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
+        elif selected_series == "Furniture and home furnishings stores($MM)":
+            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.1)
+            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
+            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
+            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
+
     elif model_type == "SARIMAX":
         if selected_series == "Retail sales($MM)":
             order = (1, 1, 1)

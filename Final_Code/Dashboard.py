@@ -278,59 +278,6 @@ if uploaded_file:
             weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
 
-    elif model_type == "Random Forest":
-        if selected_series == "Retail sales($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Food services and drinking places($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Motor vehicle and parts dealers($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Furniture and home furnishings stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Electronics and appliance stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Building mat. and garden equip. and supplies dealers($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Food and beverage stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Health and personal care stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Gasoline stations($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Clothing and clothing access. Stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Sporting goods, hobby, musical instrument, and book stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "General merchandise stores($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Miscellaneous store retailers($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-        elif selected_series == "Nonstore retailers($MM)":
-            n_estimators = st.sidebar.slider("Number of Estimators (Random Forest)", min_value=50, max_value=500, value=100, step=10)
-
-    elif model_type == "XGBoost":
-        learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.1, step=0.01)
-        n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100, step=10)
-        max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
-        min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
-
-    elif model_type == "XGBoost":
-        if selected_series == "Retail sales($MM)":
-            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.01)
-            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
-            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
-            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
-        elif selected_series == "Food services and drinking places($MM)":
-            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.03)
-            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
-            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
-            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
-        elif selected_series == "Furniture and home furnishings stores($MM)":
-            learning_rate = st.sidebar.slider("Learning Rate (XGBoost)", min_value=0.01, max_value=0.3, value=0.05)
-            n_estimators = st.sidebar.slider("Number of Estimators (XGBoost)", min_value=50, max_value=500, value=100)
-            max_depth = st.sidebar.slider("Max Depth (XGBoost)", min_value=3, max_value=10, value=6)
-            min_child_weight = st.sidebar.slider("Min Child Weight (XGBoost)", min_value=1, max_value=10, value=1)
-
     elif model_type == "SARIMAX":
         if selected_series == "Retail sales($MM)":
 
@@ -432,10 +379,10 @@ if uploaded_file:
                             yearly_option, weekly_option, daily_option, 'MS', 0.8, future_exog_df, future_steps)
 
         elif model_type == "Random Forest":
-            future_predictions_df, rmse, mae, mape, r2 = run_rf_model(df, selected_series, selected_regressors, n_estimators, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_rf_model(df, selected_series, selected_regressors, future_exog_df, future_steps)
 
         elif model_type == "XGBoost":
-            future_predictions_df, rmse, mae, mape, r2 = run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
+            future_predictions_df, rmse, mae, mape, r2 = run_xgboost_model(df, selected_series, future_exog_df, future_steps)
 
         elif model_type == "Holt Winters":
             future_predictions_df, rmse, mae, mape, r2 = run_hw_model(df, selected_series, selected_regressors, future_exog_df, future_steps, lag_feature)

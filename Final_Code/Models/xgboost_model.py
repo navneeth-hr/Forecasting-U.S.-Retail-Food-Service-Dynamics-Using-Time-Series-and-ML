@@ -5,11 +5,12 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 from xgboost import XGBRegressor
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2_score
 
 np.random.seed(6450)
 
-def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps):
+def run_xgboost_model(df, selected_series, future_exog_df, future_steps):
     def make_stationary(data, target_col):
         data['diff'] = data[target_col].diff()
         data.dropna(inplace=True)
@@ -22,7 +23,7 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
             original_predictions.append(original_predictions[-1] + predictions[i])
         return original_predictions
 
-    def xgboost_with_feature_engineering(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps):
+    def xgboost_with_feature_engineering(df, selected_series, future_exog_df, future_steps):
         df = make_stationary(df, selected_series)
 
         # Add lag and rolling features
@@ -43,21 +44,56 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         X_train, X_test = X[:train_size], X[train_size:]
         y_train, y_test = y[:train_size], y[train_size:]
 
-        # Define the XGBoost model with hyperparameters
-        xgb_model = XGBRegressor(
-            learning_rate=learning_rate,
-            n_estimators=n_estimators,
-            max_depth=max_depth,
-            min_child_weight=min_child_weight,
-            random_state=42
-        )
+        # Grid search for hyperparameter tuning
+        param_distributions = {
+            'learning_rate': np.linspace(0.01, 0.3, 20),
+            'n_estimators': range(50, 300, 50),
+            'max_depth': range(3, 21, 2),
+            'min_child_weight': [1, 2, 3, 4, 5, 6],
+            'subsample': np.linspace(0.6, 1.0, 10),
+            'colsample_bytree': np.linspace(0.6, 1.0, 10),
+            'gamma': np.linspace(0, 0.5, 15),
+            'reg_alpha': np.logspace(-3, 2, 6),
+            'reg_lambda': np.logspace(-3, 2, 6),
+        }
 
-        # Fit the model
-        xgb_model.fit(X_train, y_train)
+        xgb_model = XGBRegressor(random_state=42)
+        random_search = RandomizedSearchCV(
+        estimator=xgb_model,
+        param_distributions=param_distributions,
+        n_iter=100,  # Number of random combinations to try
+        scoring='neg_mean_squared_error',
+        cv=10,
+        random_state=42,
+        n_jobs=-1,
+        return_train_score=True
+    )
+        random_search.fit(X_train, y_train)
+        best_model = random_search.best_estimator_
+
+        # Display cross-validation results
+        st.subheader("Cross-Validation Results")
+        cv_results = pd.DataFrame(random_search.cv_results_)
+        cv_summary = cv_results[['param_learning_rate', 'param_n_estimators', 'param_max_depth', 
+                                  'param_min_child_weight', 'mean_test_score', 'std_test_score']]
+        cv_summary['mean_test_score'] = -cv_summary['mean_test_score']  # Convert to positive MSE
+        cv_summary.rename(columns={
+            'param_learning_rate': 'Learning Rate',
+            'param_n_estimators': 'n_estimators',
+            'param_max_depth': 'max_depth',
+            'param_min_child_weight': 'min_child_weight',
+            'mean_test_score': 'Mean Test MSE',
+            'std_test_score': 'Std Dev Test MSE'
+        }, inplace=True)
+        st.dataframe(cv_summary)
+
+        # Display best hyperparameters
+        st.write("**Best Hyperparameters:**")
+        st.write(random_search.best_params_)
 
         # Predictions for train and test sets
-        train_predictions = xgb_model.predict(X_train)
-        test_predictions = xgb_model.predict(X_test)
+        train_predictions = best_model.predict(X_train)
+        test_predictions = best_model.predict(X_test)
 
         # Calculate residuals
         train_residuals = y_train - train_predictions
@@ -107,7 +143,7 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         st.subheader("Feature Importance")
 
         # Feature importance plot
-        feature_importances = xgb_model.feature_importances_
+        feature_importances = best_model.feature_importances_
 
         plt.figure(figsize=(10, 6))
         sns.barplot(x=features, y=feature_importances)
@@ -128,7 +164,7 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
                     last_sequence[regressor] = future_exog_df.iloc[i][regressor]
 
             # Predict the next value
-            next_pred = xgb_model.predict(last_sequence)
+            next_pred = best_model.predict(last_sequence)
             future_predictions.append(next_pred[0])
 
             # Update last_sequence with the new prediction and drop the oldest lag
@@ -167,4 +203,4 @@ def run_xgboost_model(df, selected_series, learning_rate, n_estimators, max_dept
         return future_predictions_df, rmse, mae, mape, r2
 
     # Ensure the function returns the result
-    return xgboost_with_feature_engineering(df, selected_series, learning_rate, n_estimators, max_depth, min_child_weight, future_exog_df, future_steps)
+    return xgboost_with_feature_engineering(df, selected_series, future_exog_df, future_steps)

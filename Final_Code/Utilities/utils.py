@@ -77,7 +77,7 @@ def generate_insights(category_name, rmse, mae, mape, r2_score, predictions_df, 
             "### Recommendations:\n"
             "- Retailers should prepare for increased demand by optimizing inventory levels and enhancing marketing strategies, especially for the upcoming season.\n"
             "- Policymakers may consider this trend as an indicator of economic recovery and increased consumer confidence.\n"
-            "- Investors could view this as an opportunity for strategic investments in retail stocks or related sectors.\n"
+            "- Investors could view this as an opportunity for strategic investments in stocks or related sectors.\n"
         )
     elif trend_type == "decline":
         recommendation = (

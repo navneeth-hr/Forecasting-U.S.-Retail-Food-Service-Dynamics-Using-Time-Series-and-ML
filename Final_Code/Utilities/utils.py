@@ -33,12 +33,12 @@ def generate_insights(category_name, rmse, mae, mape, r2_score, predictions_df, 
     )
 
     # 2. Business Interpretation
-    if mape < 10:
+    if mape < 10 and r2_score > 70:
         accuracy_comment = "The model shows high accuracy with a MAPE below 10%, making it reliable for forecasting."
-    elif 10 <= mape < 20:
+    elif 10 <= mape < 20 and 69 <= r2_score < 10:
         accuracy_comment = "The model has moderate accuracy. Predictions can be used for strategic planning but should be monitored closely."
     else:
-        accuracy_comment = "The model has lower accuracy with a high MAPE. It may require additional tuning or feature enhancements."
+        accuracy_comment = "The model has lower accuracy with a moderate MAPE. It may require additional tuning or feature enhancements."
 
     # Analyze trend
     trend_growth = predictions_df[f'Predicted {category_name}'].pct_change().mean()

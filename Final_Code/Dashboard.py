@@ -166,12 +166,12 @@ if uploaded_file:
         
     elif model_type == "Prophet":
         if selected_series == "Retail sales($MM)":
-            changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.01, max_value=1.0, value=0.05)
-            seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=10.0)
+            changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.001, max_value=0.01, value=0.001)
+            seasonality_prior_scale=st.sidebar.slider("Seasonality Prior Scale (Prophet)", min_value=0.01, max_value=15.0, value=2.0)
             periods = st.sidebar.slider("Periods (Prophet)", min_value=12, max_value=36, value=24)
             seasonality_mode = st.sidebar.selectbox("Seasonality Mode (Prophet)", ["additive", "multiplicative"], index=0)
             yearly_option = st.sidebar.radio("Yearly Seasonality:", [True, False], horizontal=True, index=0)
-            weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=0)
+            weekly_option = st.sidebar.radio("Weekly Seasonality:", [True, False], horizontal=True, index=1)
             daily_option = st.sidebar.radio("Daily Seasonality:", [True, False], horizontal=True, index=1)
         elif selected_series == "Food services and drinking places($MM)":
             changepoint_prior_scale = st.sidebar.slider("Changepoint Prior Scale (Prophet)", min_value=0.000, max_value=1.00, value=0.001)

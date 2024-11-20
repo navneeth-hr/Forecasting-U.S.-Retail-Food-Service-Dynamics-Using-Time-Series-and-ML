@@ -5,6 +5,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolu
 import streamlit as st
 import matplotlib.pyplot as plt
 from Utilities.utils import display_error_metrics
+from prophet.diagnostics import cross_validation, performance_metrics
 
 def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_scale, seasonality_prior_scale,
                       seasonality_mode, yearly_seasonality, weekly_seasonality, daily_seasonality, freq, train_size,
@@ -33,6 +34,18 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
 
     # Fit the model on training data
     model.fit(train_df)
+
+    # Cross-validation using Prophet's built-in function
+    cv_results = cross_validation(model, initial=f'{540} days', 
+                                  period=f'{30} days', horizon=f'{future_steps * 30} days')
+
+    # Performance metrics from cross-validation
+    cv_metrics = performance_metrics(cv_results)
+
+    st.subheader("Cross-Validation Metrics")
+    st.write(f"**RMSE (Cross-Validation):** {cv_metrics['rmse'].mean():.2f}")
+    st.write(f"**MAE (Cross-Validation):** {cv_metrics['mae'].mean():.2f}")
+    st.write(f"**MAPE (Cross-Validation):** {(cv_metrics['mape'].mean()) * 100:.2f} %")
 
     # Prepare future dataframe for predictions (test period + future steps)
     future = model.make_future_dataframe(periods=len(test_df) + future_steps, freq=freq)
@@ -69,7 +82,6 @@ def run_prophet_model(data, target_col, regressors, periods, changepoint_prior_s
     plt.figure(figsize=(12, 6))
     plt.plot(df_prophet['ds'], df_prophet['y'], label='Actual Train', color='blue')
     plt.plot(test_df['ds'], forecast_test['yhat'], label='Predicted Test', color='green')
-    #plt.fill_between(test_df['ds'], forecast_test['yhat_lower'], forecast_test['yhat_upper'], color='lightgrey', alpha=0.5, label='95% Prediction Interval')
     plt.axvline(df_prophet['ds'][split_idx], color='red', linestyle='--', label='Train/Test Split')
     plt.xlabel('Month')
     plt.ylabel(f'{target_col}')

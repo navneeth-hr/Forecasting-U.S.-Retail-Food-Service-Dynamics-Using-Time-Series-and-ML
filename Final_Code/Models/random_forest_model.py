@@ -45,8 +45,8 @@ def run_rf_model(df, selected_series, selected_regressors, future_exog_df, futur
         y_train, y_test = y[:train_size], y[train_size:]
 
         param_distributions = {
-            'n_estimators': range(50, 1001, 50),
-            'max_depth': range(10, 101, 10),
+            'n_estimators': range(50, 400, 50),
+            'max_depth': range(10, 51, 10),
             'min_samples_split': np.arange(2, 21, 2),
             'min_samples_leaf': np.arange(1, 11, 1),
             'max_features': [0.2, 0.5, 0.7, 'sqrt', 'log2'],
@@ -61,7 +61,7 @@ def run_rf_model(df, selected_series, selected_regressors, future_exog_df, futur
         random_search = RandomizedSearchCV(
         estimator=rf_model,
         param_distributions=param_distributions,
-        n_iter=100,  # Number of random combinations to try
+        n_iter=50,  # Number of random combinations to try
         scoring='neg_mean_squared_error',
         cv=10,
         random_state=42,
@@ -72,19 +72,19 @@ def run_rf_model(df, selected_series, selected_regressors, future_exog_df, futur
         best_model = random_search.best_estimator_
 
         # Display cross-validation results
-        st.subheader("Cross-Validation Results")
-        cv_results = pd.DataFrame(random_search.cv_results_)
-        cv_summary = cv_results[['param_n_estimators', 'param_max_depth', 'param_min_samples_split', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score']]
-        cv_summary['mean_test_score'] = -cv_summary['mean_test_score']  # Convert to positive MSE
-        cv_summary.rename(columns={
-            'param_n_estimators': 'n_estimators',
-            'param_max_depth': 'max_depth',
-            'param_min_samples_split': 'min_samples_split',
-            'param_min_samples_leaf': 'min_samples_leaf',
-            'mean_test_score': 'Mean Test MSE',
-            'std_test_score': 'Std Dev Test MSE'
-        }, inplace=True)
-        st.dataframe(cv_summary)
+        # st.subheader("Cross-Validation Results")
+        # cv_results = pd.DataFrame(random_search.cv_results_)
+        # cv_summary = cv_results[['param_n_estimators', 'param_max_depth', 'param_min_samples_split', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score']]
+        # cv_summary['mean_test_score'] = -cv_summary['mean_test_score']  # Convert to positive MSE
+        # cv_summary.rename(columns={
+        #     'param_n_estimators': 'n_estimators',
+        #     'param_max_depth': 'max_depth',
+        #     'param_min_samples_split': 'min_samples_split',
+        #     'param_min_samples_leaf': 'min_samples_leaf',
+        #     'mean_test_score': 'Mean Test MSE',
+        #     'std_test_score': 'Std Dev Test MSE'
+        # }, inplace=True)
+        # st.dataframe(cv_summary)
 
         # Display best hyperparameters
         st.write("**Best Hyperparameters:**")
@@ -165,11 +165,26 @@ def run_rf_model(df, selected_series, selected_regressors, future_exog_df, futur
             next_pred = best_model.predict(last_sequence)
             future_predictions.append(next_pred[0])
 
-            # Update last_sequence with the new prediction and drop the oldest lag
-            last_sequence = last_sequence.shift(-1, axis=1)
-            last_sequence.iloc[:, 0] = next_pred  # Update with prediction in lag_1
-            last_sequence['rolling_3'] = pd.concat([pd.Series([next_pred[0]]), last_sequence['rolling_3']]).rolling(3).mean().iloc[-1]
-            last_sequence['rolling_6'] = pd.concat([pd.Series([next_pred[0]]), last_sequence['rolling_6']]).rolling(6).mean().iloc[-1]
+            # Shift and update lag features
+            for lag_col in [col for col in last_sequence.columns if 'lag_' in col]:
+                lag_idx = int(lag_col.split('_')[-1])  # Get lag number
+                if lag_idx == 1:
+                    last_sequence[lag_col] = next_pred[0]
+                else:
+                    last_sequence[lag_col] = last_sequence[f'lag_{lag_idx - 1}']
+
+            # Update rolling features
+            new_data = pd.Series([next_pred[0]])  # New prediction as a series
+            last_sequence['rolling_3'] = (
+                pd.concat([new_data, last_sequence['rolling_3'][:-1]]).rolling(3, min_periods=1).mean().iloc[-1]
+            )
+            last_sequence['rolling_6'] = (
+                pd.concat([new_data, last_sequence['rolling_6'][:-1]]).rolling(6, min_periods=1).mean().iloc[-1]
+            )
+
+            # Fill any NaN values with 0 or another appropriate value
+            last_sequence.fillna(0, inplace=True)
+
 
         # Revert differencing for future predictions
         future_predictions_inv = revert_differencing(df, future_predictions, selected_series)

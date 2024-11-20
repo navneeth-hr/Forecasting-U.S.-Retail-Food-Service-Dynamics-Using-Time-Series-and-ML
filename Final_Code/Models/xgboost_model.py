@@ -72,20 +72,20 @@ def run_xgboost_model(df, selected_series, future_exog_df, future_steps):
         best_model = random_search.best_estimator_
 
         # Display cross-validation results
-        st.subheader("Cross-Validation Results")
-        cv_results = pd.DataFrame(random_search.cv_results_)
-        cv_summary = cv_results[['param_learning_rate', 'param_n_estimators', 'param_max_depth', 
-                                  'param_min_child_weight', 'mean_test_score', 'std_test_score']]
-        cv_summary['mean_test_score'] = -cv_summary['mean_test_score']  # Convert to positive MSE
-        cv_summary.rename(columns={
-            'param_learning_rate': 'Learning Rate',
-            'param_n_estimators': 'n_estimators',
-            'param_max_depth': 'max_depth',
-            'param_min_child_weight': 'min_child_weight',
-            'mean_test_score': 'Mean Test MSE',
-            'std_test_score': 'Std Dev Test MSE'
-        }, inplace=True)
-        st.dataframe(cv_summary)
+        # st.subheader("Cross-Validation Results")
+        # cv_results = pd.DataFrame(random_search.cv_results_)
+        # cv_summary = cv_results[['param_learning_rate', 'param_n_estimators', 'param_max_depth', 
+        #                           'param_min_child_weight', 'mean_test_score', 'std_test_score']]
+        # cv_summary['mean_test_score'] = -cv_summary['mean_test_score']  # Convert to positive MSE
+        # cv_summary.rename(columns={
+        #     'param_learning_rate': 'Learning Rate',
+        #     'param_n_estimators': 'n_estimators',
+        #     'param_max_depth': 'max_depth',
+        #     'param_min_child_weight': 'min_child_weight',
+        #     'mean_test_score': 'Mean Test MSE',
+        #     'std_test_score': 'Std Dev Test MSE'
+        # }, inplace=True)
+        # st.dataframe(cv_summary)
 
         # Display best hyperparameters
         st.write("**Best Hyperparameters:**")
@@ -167,12 +167,26 @@ def run_xgboost_model(df, selected_series, future_exog_df, future_steps):
             next_pred = best_model.predict(last_sequence)
             future_predictions.append(next_pred[0])
 
-            # Update last_sequence with the new prediction and drop the oldest lag
-            last_sequence = last_sequence.shift(-1, axis=1)
-            last_sequence.iloc[:, 0] = next_pred  # Update with prediction in lag_1
-            last_sequence['rolling_3'] = pd.concat([pd.Series([next_pred[0]]), last_sequence['rolling_3']]).rolling(3).mean().iloc[-1]
-            last_sequence['rolling_6'] = pd.concat([pd.Series([next_pred[0]]), last_sequence['rolling_6']]).rolling(6).mean().iloc[-1]
+            # Shift and update lag features
+            for lag_col in [col for col in last_sequence.columns if 'lag_' in col]:
+                lag_idx = int(lag_col.split('_')[-1])  # Get lag number
+                if lag_idx == 1:
+                    last_sequence[lag_col] = next_pred[0]
+                else:
+                    last_sequence[lag_col] = last_sequence[f'lag_{lag_idx - 1}']
 
+            # Update rolling features
+            new_data = pd.Series([next_pred[0]])  # New prediction as a series
+            last_sequence['rolling_3'] = (
+                pd.concat([new_data, last_sequence['rolling_3'][:-1]]).rolling(3, min_periods=1).mean().iloc[-1]
+            )
+            last_sequence['rolling_6'] = (
+                pd.concat([new_data, last_sequence['rolling_6'][:-1]]).rolling(6, min_periods=1).mean().iloc[-1]
+            )
+
+            # Fill any NaN values with 0 or another appropriate value
+            last_sequence.fillna(0, inplace=True)
+            
         # Revert differencing for future predictions
         future_predictions_inv = revert_differencing(df, future_predictions, selected_series)
 

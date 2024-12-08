@@ -14,13 +14,16 @@ import pandas as pd
 np.random.seed(6450)
 
 def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, units, dropout_rate, future_steps):
-    # Initialize the scaler
+    """
+    Trains an LSTM model for time series prediction with the ability to make future predictions.
+    """
+    # Scale the target series to the [0, 1] range.
     target_scaler = MinMaxScaler(feature_range=(0, 1))
 
     # Scale the historical data
     scaled_target = target_scaler.fit_transform(df[[selected_series]].values)
 
-    # Define function to create sequences
+    # Generate sequences from the scaled data
     def create_sequences(data, sequence_length):
         X, y = [], []
         for i in range(sequence_length, len(data)):
@@ -28,7 +31,6 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
             y.append(data[i, 0])
         return np.array(X), np.array(y)
 
-    # Create sequences using the scaled data
     X, y = create_sequences(scaled_target, sequence_length)
 
     # Split data into training (80%) and testing (20%)
@@ -49,6 +51,7 @@ def run_lstm_model(df, selected_series, sequence_length, epochs, batch_size, uni
     # Prepare future data for iterative forecasting
     X_future = X_test[-1:]
 
+    # Define the LSTM model architecture.
     model = Sequential()
     model.add(LSTM(units=units, return_sequences=True, 
                    input_shape=(X_train.shape[1], X_train.shape[2]), 

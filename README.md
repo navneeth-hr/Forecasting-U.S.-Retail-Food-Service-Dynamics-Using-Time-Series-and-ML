@@ -34,6 +34,7 @@ The dashboard integrates with external CSV files, such as future exogenous varia
 - **Evaluation Metrics**: Assess model performance using metrics like RMSE, MAE, MAPE, and R².
 
 *Figure 1 below demonstrates the dashboard's layout and modular design.*
+![Dashboard Sample](https://github.com/navneeth-hr/Forecasting-U.S.-Retail-Food-Service-Dynamics-Using-Time-Series-and-ML/blob/main/DashboardSample.jpg)
 
 ---
 
